@@ -77,9 +77,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceLight.withOpacity(0.3),
+                        color: AppColors.surfaceLight.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border.withOpacity(0.3)),
+                        border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
                       ),
                       child: const Icon(Icons.settings_outlined, color: AppColors.primary),
                     ),
@@ -92,7 +92,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               ],
             ),
             SliverPadding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.05,
+                vertical: 20,
+              ),
               sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,13 +168,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   }
 
   Widget _buildMetricsGrid() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = screenWidth > 600 ? 4 : 2;
+    final aspectRatio = screenWidth > 600 ? 1.2 : 0.9;
+    
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
+      crossAxisCount: crossAxisCount,
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
-      childAspectRatio: 1,
+      childAspectRatio: aspectRatio,
       children: [
         AnimatedBuilder(
           animation: _animationController,

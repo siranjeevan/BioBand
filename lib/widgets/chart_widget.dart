@@ -66,13 +66,13 @@ class _ChartWidgetState extends State<ChartWidget> with TickerProviderStateMixin
                     end: Alignment.topCenter,
                     colors: [
                       widget.color,
-                      widget.color.withOpacity(0.6),
+                      widget.color.withValues(alpha: 0.6),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: widget.color.withOpacity(0.3),
+                      color: widget.color.withValues(alpha: 0.3),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
