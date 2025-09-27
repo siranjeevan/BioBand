@@ -449,7 +449,7 @@ class _HealthOverviewScreenState extends State<HealthOverviewScreen> with Ticker
                     child: Text(
                       metrics[index],
                       style: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.textSecondary,
+                        color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                         fontSize: screenWidth * 0.032,
                       ),
@@ -896,7 +896,7 @@ class InteractiveChartPainter extends CustomPainter {
                 ),
                 child: const Icon(
                   Icons.analytics,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   size: 24,
                 ),
               ),

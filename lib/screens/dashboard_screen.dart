@@ -67,7 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppColors.primary),
+            icon: const Icon(Icons.refresh, color: AppColors.textPrimary),
             onPressed: () => setState(() => _lastSynced = DateTime.now()),
           ),
         ],
@@ -76,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
           child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
@@ -167,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           title: 'Blood Oxygen',
           value: '${SensorData.spo2}',
           unit: '%',
-          color: AppColors.secondary,
+          color: AppColors.textPrimary,
           animationType: 'bubble',
         ),
         _buildVitalCard(
@@ -199,34 +199,34 @@ class _DashboardScreenState extends State<DashboardScreen>
     required String animationType,
   }) {
     return GlassContainer(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           _buildAnimation(animationType, color),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
-              fontSize: 32,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
-          const SizedBox(height: 4),
           Text(
             unit,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             title,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
@@ -298,7 +298,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             'High',
             'You\'re meeting daily activity goals',
             Icons.trending_up,
-            AppColors.primary,
+            AppColors.textPrimary,
           ),
         ],
       ),
@@ -489,7 +489,7 @@ class Bubble {
     y = 1.0 + random.nextDouble() * 0.5;
     size = 2 + random.nextDouble() * 4;
     speed = 0.3 + random.nextDouble() * 0.7;
-    color = AppColors.secondary.withValues(alpha: 0.3 + random.nextDouble() * 0.4);
+    color = AppColors.textPrimary.withValues(alpha: 0.3 + random.nextDouble() * 0.4);
   }
 
   void update(double animationValue) {

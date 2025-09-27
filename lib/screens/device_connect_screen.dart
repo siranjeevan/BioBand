@@ -82,17 +82,18 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
                 _buildConnectionStatus(),
-                const SizedBox(height: 32),
-                _buildScanAnimation(),
-                const SizedBox(height: 32),
-                _buildScanButton(),
                 const SizedBox(height: 24),
-                Expanded(child: _buildDeviceList()),
+                _buildScanAnimation(),
+                const SizedBox(height: 24),
+                _buildScanButton(),
+                const SizedBox(height: 16),
+                _buildDeviceList(),
               ],
             ),
           ),
@@ -216,69 +217,73 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
   Widget _buildDeviceList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Text(
           'Available Devices',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: ListView.builder(
-            itemCount: _devices.length,
-            itemBuilder: (context, index) {
-              final device = _devices[index];
-              return GlassContainer(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                child: ListTile(
-                  leading: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                    ),
-                    child: Icon(
-                      Icons.watch,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
+        const SizedBox(height: 12),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _devices.length,
+          itemBuilder: (context, index) {
+            final device = _devices[index];
+            return GlassContainer(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withValues(alpha: 0.1),
                   ),
-                  title: Text(
-                    device.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '${device.id} • Signal: ${device.rssi} dBm',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                  trailing: ElevatedButton(
-                    onPressed: () => _connectDevice(device),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Connect',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                  child: Icon(
+                    Icons.watch,
+                    color: AppColors.primary,
+                    size: 20,
                   ),
                 ),
-              );
-            },
-          ),
+                title: Text(
+                  device.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                  ),
+                ),
+                subtitle: Text(
+                  '${device.id} • Signal: ${device.rssi} dBm',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                  ),
+                ),
+                trailing: ElevatedButton(
+                  onPressed: () => _connectDevice(device),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    minimumSize: const Size(60, 32),
+                  ),
+                  child: const Text(
+                    'Connect',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );

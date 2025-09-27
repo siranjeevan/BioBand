@@ -40,9 +40,9 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transperant,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transperant,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
@@ -99,7 +99,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                   ),
                   child: const Icon(
                     Icons.favorite,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     size: 40,
                   ),
                 ),

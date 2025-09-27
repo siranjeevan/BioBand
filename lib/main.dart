@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:nadi_pariksh/design_system/app_colors.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/login_screen.dart';
@@ -11,7 +11,6 @@ import 'screens/reports_screen.dart';
 import 'screens/alerts_screen.dart';
 import 'screens/doctor_access_screen.dart';
 import 'screens/profile_screen.dart';
-
 import 'screens/settings_screen.dart';
 
 void main() {
@@ -29,25 +28,25 @@ class NadiParikshaApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF4E2A4F),
-          secondary: Color(0xFF2D1E2F),
-          surface: Color(0xFF4E2A4F),
-          onPrimary: Color(0xFFFFFFFF),
-          onSecondary: Color(0xFFB0A8B9),
-          onSurface: Color(0xFFFFFFFF),
-          tertiary: Color(0xFF6B4C6D),
-          outline: Color(0xFFB0A8B9),
+          primary:AppColors.secondaryLight,
+          secondary: AppColors.primary,
+          surface: AppColors.secondaryLight,
+          onPrimary: AppColors.textPrimary,
+          onSecondary: AppColors.textPrimary,
+          onSurface: AppColors.textPrimary,
+          tertiary:AppColors.primaryLight,
+          outline: AppColors.textPrimary,
         ),
-        scaffoldBackgroundColor: const Color(0xFF2D1E2F),
+        scaffoldBackgroundColor: AppColors.primary,
         
         // AppBar Theme
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          foregroundColor: Color(0xFFFFFFFF),
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
           centerTitle: true,
           titleTextStyle: TextStyle(
-            color: Color(0xFFFFFFFF),
+            color:AppColors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -55,9 +54,9 @@ class NadiParikshaApp extends StatelessWidget {
         
         // Bottom Navigation Theme
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: Colors.transparent,
-          selectedItemColor: const Color(0xFF4E2A4F),
-          unselectedItemColor: const Color(0xFFB0A8B9),
+          backgroundColor: AppColors.primary,
+          selectedItemColor: AppColors.primaryLight,
+          unselectedItemColor: AppColors.textPrimary,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
           selectedLabelStyle: const TextStyle(
@@ -73,10 +72,10 @@ class NadiParikshaApp extends StatelessWidget {
         // Button Themes
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF4E2A4F),
-            foregroundColor: const Color(0xFFFFFFFF),
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.textPrimary,
             elevation: 8,
-            shadowColor: const Color(0xFF4E2A4F).withValues(alpha: 0.3),
+            shadowColor: AppColors.primary.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -86,8 +85,8 @@ class NadiParikshaApp extends StatelessWidget {
         
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF4E2A4F),
-            foregroundColor: const Color(0xFFFFFFFF),
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.textPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -96,101 +95,101 @@ class NadiParikshaApp extends StatelessWidget {
         
         // Card Theme
         cardTheme: CardThemeData(
-          color: const Color(0xFF4E2A4F).withValues(alpha: 0.2),
+          color: AppColors.primary.withValues(alpha: 0.2),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: BorderSide(
-              color: const Color(0xFF4E2A4F).withValues(alpha: 0.3),
+              color: AppColors.primary.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
-          shadowColor: const Color(0xFF4E2A4F).withValues(alpha: 0.2),
+          shadowColor: AppColors.primary.withValues(alpha: 0.2),
         ),
         
         // Input Decoration Theme
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFF4E2A4F).withValues(alpha: 0.1),
+          fillColor: AppColors.surfaceCard.withValues(alpha: 0.1),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: const Color(0xFF4E2A4F).withValues(alpha: 0.3),
+              color: AppColors.surfaceCard.withValues(alpha: 0.3),
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: const Color(0xFF4E2A4F).withValues(alpha: 0.3),
+              color:AppColors.surface.withValues(alpha: 0.3),
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(
-              color: Color(0xFF4E2A4F),
+              color:AppColors.surface,
               width: 2,
             ),
           ),
           labelStyle: const TextStyle(
-            color: Color(0xFFB0A8B9),
+            color: AppColors.textPrimary,
           ),
           hintStyle: const TextStyle(
-            color: Color(0xFFB0A8B9),
+            color:AppColors.textPrimary,
           ),
         ),
         
         // Text Theme
         textTheme: const TextTheme(
           displayLarge: TextStyle(
-            color: Color(0xFFFFFFFF),
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
           displayMedium: TextStyle(
-            color: Color(0xFFFFFFFF),
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
           headlineLarge: TextStyle(
-            color: Color(0xFFFFFFFF),
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
           headlineMedium: TextStyle(
-            color: Color(0xFFFFFFFF),
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
           titleLarge: TextStyle(
-            color: Color(0xFFFFFFFF),
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
           titleMedium: TextStyle(
-            color: Color(0xFFFFFFFF),
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.w500,
           ),
           bodyLarge: TextStyle(
-            color: Color(0xFFFFFFFF),
+            color: AppColors.textPrimary,
           ),
           bodyMedium: TextStyle(
-            color: Color(0xFFB0A8B9),
+            color:AppColors.textPrimary,
           ),
           bodySmall: TextStyle(
-            color: Color(0xFFB0A8B9),
+            color: AppColors.textPrimary,
           ),
         ),
         
         // Divider Theme
         dividerTheme: DividerThemeData(
-          color: const Color(0xFF4E2A4F).withValues(alpha: 0.3),
+          color: AppColors.surfaceCard.withValues(alpha: 0.3),
           thickness: 1,
         ),
         
         // Icon Theme
         iconTheme: const IconThemeData(
-          color: Color(0xFFFFFFFF),
+          color: AppColors.textPrimary,
         ),
         
         // List Tile Theme
         listTileTheme: const ListTileThemeData(
-          textColor: Color(0xFFFFFFFF),
-          iconColor: Color(0xFF4E2A4F),
+          textColor:AppColors.textPrimary,
+          iconColor: AppColors.surfaceCard,
         ),
       ),
       home: const SplashScreen(),

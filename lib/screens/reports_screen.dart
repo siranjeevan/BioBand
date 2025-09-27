@@ -103,7 +103,7 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
                   _filters[index],
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                    color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   ),
                 ),
@@ -142,7 +142,7 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
               child: Text(
                 _metrics[index],
                 style: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nadi_pariksh/design_system/app_colors.dart';
 import '../models/sensor_data.dart';
 import '../widgets/chart_widget.dart';
 
@@ -14,7 +15,7 @@ class DetailScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar.large(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transperant,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 data['title'],
@@ -27,7 +28,7 @@ class DetailScreen extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       data['color'].withOpacity(0.1),
-                      Colors.transparent,
+                      AppColors.transperant,
                     ],
                   ),
                 ),
@@ -100,7 +101,7 @@ class DetailScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.grey[200],
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -133,7 +134,7 @@ class DetailScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.grey[200],
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -160,7 +161,7 @@ class DetailScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[400])),
+          Text(label, style: TextStyle(color: AppColors.textSecondary)),
           Text(
             value,
             style: TextStyle(
@@ -185,7 +186,7 @@ class DetailScreen extends StatelessWidget {
           'icon': Icons.favorite,
           'current': SensorData.heartRate.toString(),
           'unit': 'BPM',
-          'color': const Color(0xFFE91E63),
+          'color': AppColors.error,
           'history': SensorData.heartRateHistory,
         };
       case 'steps':
@@ -194,7 +195,7 @@ class DetailScreen extends StatelessWidget {
           'icon': Icons.directions_walk,
           'current': SensorData.steps.toString(),
           'unit': 'Steps',
-          'color': const Color(0xFF4CAF50),
+          'color': AppColors.success,
           'history': SensorData.stepsHistory,
         };
       case 'calories':
@@ -203,7 +204,7 @@ class DetailScreen extends StatelessWidget {
           'icon': Icons.local_fire_department,
           'current': SensorData.calories.toString(),
           'unit': 'kcal',
-          'color': const Color(0xFFFF9800),
+          'color': AppColors.warning,
           'history': SensorData.caloriesHistory,
         };
       default:
@@ -212,7 +213,7 @@ class DetailScreen extends StatelessWidget {
           'icon': Icons.air,
           'current': '${SensorData.spo2}%',
           'unit': 'SpO₂',
-          'color': const Color(0xFF2196F3),
+          'color': AppColors.primaryLight,
           'history': SensorData.spo2History,
         };
     }

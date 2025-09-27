@@ -133,7 +133,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
             ),
             child: const Icon(
               Icons.person,
-              color: Colors.white,
+              color: AppColors.textSecondary,
               size: 40,
             ),
           ),
@@ -260,7 +260,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.transparent,
             elevation: 0,
-            selectedItemColor: Colors.white,
+            selectedItemColor:AppColors.textSecondary,
             unselectedItemColor: AppColors.textSecondary,
             selectedLabelStyle: const TextStyle(
               fontWeight: FontWeight.w600,

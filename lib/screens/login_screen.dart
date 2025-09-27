@@ -102,7 +102,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                             const SizedBox(height: 48),
                             _buildLoginForm(),
                             const SizedBox(height: 24),
-                            _buildForgotPassword(),
                           ],
                         ),
                       ),
@@ -135,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       child: const Icon(
         Icons.health_and_safety_rounded,
         size: 60,
-        color: Colors.white,
+        color: AppColors.textSecondary,
       ),
     );
   }
@@ -143,14 +142,11 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   Widget _buildTitle() {
     return Column(
       children: [
-        ShaderMask(
-          shaderCallback: (bounds) => AppColors.gradient1.createShader(bounds),
-          child: Text(
-            'Nadi Pariksh',
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-              color: Colors.white,
-              fontSize: 36,
-            ),
+        Text(
+          'Nadi Pariksh',
+          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+            color: AppColors.textSecondary,
+            fontSize: 36,
           ),
         ),
         const SizedBox(height: 8),
@@ -179,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
               validator: _validateEmail,
               decoration: const InputDecoration(
                 labelText: 'Email Address',
-                prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
+                prefixIcon: Icon(Icons.email_outlined, color: AppColors.textSecondary),
               ),
             ),
             const SizedBox(height: 20),
@@ -189,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
               validator: _validatePassword,
               decoration: const InputDecoration(
                 labelText: 'Password',
-                prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
+                prefixIcon: Icon(Icons.lock_outline, color: AppColors.textSecondary),
               ),
             ),
           const SizedBox(height: 32),
@@ -199,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
             child: FilledButton(
               onPressed: _isLoading ? null : _login,
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.textSecondary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -210,32 +206,30 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: AppColors.textSecondary,
                       ),
                     )
                   : const Text(
                       'Sign In',
                       style: TextStyle(
+                        color:AppColors.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
             ),
           ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildForgotPassword() {
-    return TextButton(
+          TextButton(
       onPressed: () {},
       child: Text(
         'Forgot Password?',
         style: TextStyle(
-          color: AppColors.primary,
+          color: AppColors.textSecondary,
           fontWeight: FontWeight.w500,
+        ),
+      ),
+    )
+          ],
         ),
       ),
     );

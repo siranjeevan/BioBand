@@ -61,7 +61,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transperant,
         elevation: 0,
         title: const Text(
           'Doctor Access',
@@ -76,7 +76,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, color: AppColors.primary),
+            icon: const Icon(Icons.add, color: AppColors.textPrimary),
             onPressed: _addNewDoctor,
           ),
         ],
@@ -122,7 +122,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
                 ),
                 child: const Icon(
                   Icons.share,
-                  color: Colors.white,
+                  color: AppColors.iconPrimary,
                   size: 24,
                 ),
               ),
@@ -167,7 +167,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
                 child: _buildStatusCard(
                   'Total Doctors',
                   _connectedDoctors.length.toString(),
-                  AppColors.primary,
+                  AppColors.textPrimary,
                   Icons.medical_services,
                 ),
               ),
@@ -246,7 +246,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
                 child: Text(
                   doctor.name.split(' ').map((n) => n[0]).join(),
                   style: const TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                   ),
@@ -268,7 +268,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
                     Text(
                       doctor.specialty,
                       style: const TextStyle(
-                        color: AppColors.primary,
+                        color: AppColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -551,7 +551,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
               // Copy patient ID to clipboard
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Copy ID', style: TextStyle(color: Colors.white)),
+            child: const Text('Copy ID', style: TextStyle(color: AppColors.textPrimary)),
           ),
         ],
       ),
@@ -576,7 +576,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
               child: Text(
                 doctor.name.split(' ').map((n) => n[0]).join(),
                 style: const TextStyle(
-                  color: AppColors.primary,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 24,
                 ),
@@ -594,7 +594,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
             Text(
               doctor.specialty,
               style: const TextStyle(
-                color: AppColors.primary,
+                color: AppColors.textPrimary,
                 fontSize: 16,
               ),
             ),
@@ -619,7 +619,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
                     ),
                     child: const Text(
                       'Remove Access',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: AppColors.textPrimary),
                     ),
                   ),
                 ),
@@ -635,7 +635,7 @@ class _DoctorAccessScreenState extends State<DoctorAccessScreen> {
                     ),
                     child: const Text(
                       'Contact',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: AppColors.textPrimary),
                     ),
                   ),
                 ),

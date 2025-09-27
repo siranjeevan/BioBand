@@ -88,7 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             child: Icon(
               data.icon,
-              color: Colors.white,
+              color: AppColors.textSecondary,
               size: 80,
             ),
           ),
@@ -157,7 +157,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -190,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: const Text(
                     'Next',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

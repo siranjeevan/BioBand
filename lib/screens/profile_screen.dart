@@ -51,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit, color: AppColors.primary),
+            icon: const Icon(Icons.edit, color: AppColors.textSecondary),
             onPressed: _editProfile,
           ),
         ],
@@ -93,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Text(
                   _userInfo['name']!.split(' ').map((n) => n[0]).join(),
                   style: const TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
                   ),
@@ -108,11 +108,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.success,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color:AppColors.textPrimary, width: 2),
                   ),
                   child: const Icon(
                     Icons.check,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     size: 16,
                   ),
                 ),
@@ -157,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.primary,
+            color: AppColors.textPrimary,
           ),
         ),
         Text(
@@ -226,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: const Icon(
                       Icons.watch,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       size: 30,
                     ),
                   ),
@@ -286,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary, size: 20),
+          Icon(icon, color: AppColors.textPrimary, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -334,7 +334,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 trailing: Switch(
                   value: _isDarkMode,
                   onChanged: (value) => setState(() => _isDarkMode = value),
-                  activeColor: AppColors.primary,
+                  activeColor: AppColors.textPrimary,
                 ),
               ),
               _buildSettingItem(
@@ -376,7 +376,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: AppColors.primary, size: 20),
+        child: Icon(icon, color: AppColors.textPrimary, size: 20),
       ),
       title: Text(
         title,
@@ -406,7 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: ElevatedButton(
             onPressed: _exportData,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.textPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -416,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.primary,
               ),
             ),
           ),
@@ -504,7 +504,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: const Text(
                   'Save Changes',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.textPrimary),
                 ),
               ),
             ),
@@ -544,7 +544,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Export', style: TextStyle(color: Colors.white)),
+            child: const Text('Export', style: TextStyle(color: AppColors.textPrimary)),
           ),
         ],
       ),
@@ -576,7 +576,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.pushReplacementNamed(context, '/login');
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Logout', style: TextStyle(color: Colors.white)),
+            child: const Text('Logout', style: TextStyle(color: AppColors.textPrimary)),
           ),
         ],
       ),

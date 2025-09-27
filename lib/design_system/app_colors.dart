@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Primary Colors - Obsidian Plum Palette
-  static const primary = Color(0xFF4E2A4F);
-  static const primaryLight = Color(0xFF6B4C6D);
-  static const primaryDark = Color(0xFF3A1F3B);
+  static const primary = Color(0xFF000428);
+  static const primaryLight = Color(0xFF1729CB);
+  static const primaryDark = Color(0xFF000428);
   
   // Secondary colors
-  static const secondary = Color(0xFF2D1E2F);
-  static const secondaryLight = Color(0xFF4A3A4B);
+  static const secondary = Color(0xFF000428);
+  static const secondaryLight = Color(0xFF0B135E);
   
   // Status colors
   static const success = Color(0xFF4CAF50);
@@ -16,15 +16,18 @@ class AppColors {
   static const error = Color(0xFFF44336);
   
   // Dark theme colors
-  static const surface = Color(0xFF4E2A4F);
-  static const surfaceLight = Color(0xFF6B4C6D);
-  static const surfaceCard = Color(0xFF3A2A3B);
+  static const surface = Color(0xFF0B135E);
+  static const surfaceLight = Color(0xFF0B135E);
+  static const surfaceCard = Color(0xFF000428);
   static const textPrimary = Color(0xFFFFFFFF);
-  static const textSecondary = Color(0xFFB0A8B9);
-  static const textMuted = Color(0xFF8A7A8B);
-  static const border = Color(0xFF4E2A4F);
-  static const borderLight = Color(0xFF6B4C6D);
-  
+  static const textSecondary = Color(0xFFFFFFFF);
+  static const textMuted = Color(0xFFFFFFFF);
+  static const border = Color(0xFFFFFFFF);
+  static const borderLight = Color(0xFFFFFFFF);
+   static const transperant=Colors.transparent;
+  // Icon colors
+  static const iconPrimary = Color(0xFFFFFFFF);
+  static const iconSecondary = Color(0xFFFFFFFF);
   // Gradients
   static const gradient1 = LinearGradient(
     begin: Alignment.topLeft,
@@ -35,6 +38,6 @@ class AppColors {
   static const backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFF2D1E2F), Color(0xFF4E2A4F)],
+    colors: [Color(0xFF000428),Color(0xFF0B135E)],
   );
 }

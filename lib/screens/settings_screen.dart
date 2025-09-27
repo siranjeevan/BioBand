@@ -20,7 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar.large(
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.transperant,
               flexibleSpace: const FlexibleSpaceBar(
                 title: Text(
                   'Settings',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nadi_pariksh/design_system/app_colors.dart';
 import 'dart:math';
 
 void main() {
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFF0A0E21),
         textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: AppColors.textPrimary),
         ),
       ),
       home: const OxygenScreen(),
@@ -28,15 +29,7 @@ class SensorData {
   static int spo2 = 98;
 }
 
-class AppColors {
-  static const primary = Color(0xFF0A0E21);
-  static const secondary = Color(0xFF21BF73);
-  static const accent = Color(0xFFFD5E53);
-  static const textPrimary = Colors.white;
-  static const textSecondary = Color(0xFF8D8E98);
-  static const success = Color(0xFF21BF73);
-  static const cardBackground = Color(0x1521BF73);
-}
+
 
 class GlassContainer extends StatelessWidget {
   final Widget? child;
@@ -61,9 +54,9 @@ class GlassContainer extends StatelessWidget {
       height: height,
       padding: padding,
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: AppColors.primaryDark,
         borderRadius: borderRadius ?? BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: AppColors.textSecondary.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -157,7 +150,7 @@ class _OxygenScreenState extends State<OxygenScreen>
               gradient: const LinearGradient(
                 colors: [
                   AppColors.secondary,
-                  Color(0xFF179C5F),
+                  AppColors.success,
                 ],
               ),
               boxShadow: [
@@ -170,7 +163,7 @@ class _OxygenScreenState extends State<OxygenScreen>
             ),
             child: const Icon(
               Icons.air,
-              color: Colors.white,
+              color:AppColors.textSecondary,
               size: 40,
             ),
           ),
@@ -345,7 +338,7 @@ class BubblePainter extends CustomPainter {
       
       // Add shine effect
       final shinePaint = Paint()
-        ..color = Colors.white.withOpacity(0.3)
+        ..color =AppColors.textSecondary.withOpacity(0.3)
         ..style = PaintingStyle.fill;
       
       canvas.drawCircle(
