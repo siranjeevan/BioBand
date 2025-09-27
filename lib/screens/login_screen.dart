@@ -48,10 +48,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(seconds: 1));
     if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-      );
+      Navigator.pushReplacementNamed(context, '/device-connect');
     }
   }
 

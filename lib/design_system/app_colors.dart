@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary colors
-  static const primary = Color(0xFF6366F1);
-  static const primaryLight = Color(0xFF818CF8);
-  static const primaryDark = Color(0xFF4F46E5);
+  // Primary Colors - Obsidian Plum Palette
+  static const primary = Color(0xFF4E2A4F);
+  static const primaryLight = Color(0xFF6B4C6D);
+  static const primaryDark = Color(0xFF3A1F3B);
   
   // Secondary colors
-  static const secondary = Color(0xFF06B6D4);
-  static const secondaryLight = Color(0xFF22D3EE);
+  static const secondary = Color(0xFF2D1E2F);
+  static const secondaryLight = Color(0xFF4A3A4B);
   
   // Status colors
-  static const success = Color(0xFF10B981);
-  static const warning = Color(0xFFF59E0B);
-  static const error = Color(0xFFEF4444);
+  static const success = Color(0xFF4CAF50);
+  static const warning = Color(0xFFFF9800);
+  static const error = Color(0xFFF44336);
   
   // Dark theme colors
-  static const surface = Color(0xFF0F172A);
-  static const surfaceLight = Color(0xFF1E293B);
-  static const surfaceCard = Color(0xFF334155);
-  static const textPrimary = Color(0xFFF8FAFC);
-  static const textSecondary = Color(0xFFCBD5E1);
-  static const textMuted = Color(0xFF64748B);
-  static const border = Color(0xFF475569);
-  static const borderLight = Color(0xFF64748B);
+  static const surface = Color(0xFF4E2A4F);
+  static const surfaceLight = Color(0xFF6B4C6D);
+  static const surfaceCard = Color(0xFF3A2A3B);
+  static const textPrimary = Color(0xFFFFFFFF);
+  static const textSecondary = Color(0xFFB0A8B9);
+  static const textMuted = Color(0xFF8A7A8B);
+  static const border = Color(0xFF4E2A4F);
+  static const borderLight = Color(0xFF6B4C6D);
   
   // Gradients
   static const gradient1 = LinearGradient(
@@ -35,6 +35,6 @@ class AppColors {
   static const backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+    colors: [Color(0xFF2D1E2F), Color(0xFF4E2A4F)],
   );
 }
