@@ -5,13 +5,10 @@ import 'screens/onboarding_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/device_connect_screen.dart';
 import 'screens/dashboard_screen.dart' as dashboard;
-import 'screens/main_screen.dart';
-import 'screens/health_overview_screen.dart';
 import 'screens/reports_screen.dart';
-import 'screens/alerts_screen.dart';
-import 'screens/doctor_access_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/settings_screen.dart';
+import 'screens/ai_analytics_screen.dart';
+import 'screens/main_navigation_screen.dart';
 
 void main() {
   runApp(const NadiParikshaApp());
@@ -23,7 +20,7 @@ class NadiParikshaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Nadi Pariksh',
+      title: 'Bio Band',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -197,15 +194,10 @@ class NadiParikshaApp extends StatelessWidget {
         '/onboarding': (context) => const OnboardingScreen(),
         '/login': (context) => const LoginScreen(),
         '/device-connect': (context) => const DeviceConnectScreen(),
-        '/dashboard': (context) => const dashboard.DashboardScreen(),
-        '/main': (context) => const MainScreen(),
-        '/health': (context) => const HealthOverviewScreen(),
-        '/reports': (context) => const ReportsScreen(),
-        '/alerts': (context) => const AlertsScreen(),
-        '/doctor-access': (context) => const DoctorAccessScreen(),
-        '/profile': (context) => const ProfileScreen(),
-
-        '/settings': (context) => const SettingsScreen(),
+        '/dashboard': (context) => const MainNavigationScreen(initialIndex: 0),
+        '/reports': (context) => const MainNavigationScreen(initialIndex: 2),
+        '/profile': (context) => const MainNavigationScreen(initialIndex: 3),
+        '/ai-analytics': (context) => const MainNavigationScreen(initialIndex: 1),
       },
     );
   }

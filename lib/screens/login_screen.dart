@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
-import 'main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -143,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     return Column(
       children: [
         Text(
-          'Nadi Pariksh',
+          'Bio Band',
           style: Theme.of(context).textTheme.headlineLarge?.copyWith(
             color: AppColors.textSecondary,
             fontSize: 36,

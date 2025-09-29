@@ -75,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               ),
               const SizedBox(height: 40),
               const Text(
-                'Nadi Pariksha',
+                'Bio Band',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,

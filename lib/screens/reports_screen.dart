@@ -41,16 +41,13 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text(
           'Health Reports',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
@@ -62,22 +59,26 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _buildFilterTabs(),
-                const SizedBox(height: 24),
-                _buildMetricSelector(),
-                const SizedBox(height: 24),
-                _buildChart(),
-                const SizedBox(height: 24),
-                _buildSummaryCards(),
-                const SizedBox(height: 24),
-                _buildTrendAnalysis(),
-              ],
-            ),
-          ),
+          child: ScrollConfiguration(
+  behavior: const ScrollBehavior().copyWith(overscroll: false),
+  child: SingleChildScrollView(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      children: [
+        _buildFilterTabs(),
+        const SizedBox(height: 24),
+        _buildMetricSelector(),
+        const SizedBox(height: 24),
+        _buildChart(),
+        const SizedBox(height: 24),
+        _buildSummaryCards(),
+        const SizedBox(height: 24),
+        _buildTrendAnalysis(),
+      ],
+    ),
+  ),
+)
+
         ),
       ),
     );
@@ -163,7 +164,7 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
             children: [
               Icon(
                 Icons.trending_up,
-                color: AppColors.primary,
+                color: AppColors.textPrimary,
                 size: 24,
               ),
               const SizedBox(width: 8),
@@ -179,13 +180,13 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
           ),
           const SizedBox(height: 20),
           SizedBox(
-            height: 200,
+            height: 250,
             child: AnimatedBuilder(
               animation: _animationController,
               builder: (context, child) {
                 return CustomPaint(
-                  size: const Size(double.infinity, 200),
-                  painter: ChartPainter(
+                  size: const Size(double.infinity, 250),
+                  painter: DetailedChartPainter(
                     _selectedMetric,
                     _selectedFilter,
                     _animationController.value,
@@ -209,7 +210,7 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
             'Average',
             data['average']!,
             _getUnit(_selectedMetric),
-            AppColors.primary,
+            AppColors.textPrimary,
             Icons.analytics,
           ),
         ),
@@ -283,7 +284,7 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
             children: [
               Icon(
                 Icons.insights,
-                color: AppColors.primary,
+                color: AppColors.textPrimary,
                 size: 24,
               ),
               const SizedBox(width: 8),
@@ -415,53 +416,243 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
   }
 }
 
-class ChartPainter extends CustomPainter {
+class DetailedChartPainter extends CustomPainter {
   final int metricIndex;
   final int filterIndex;
   final double animationValue;
 
-  ChartPainter(this.metricIndex, this.filterIndex, this.animationValue);
+  DetailedChartPainter(this.metricIndex, this.filterIndex, this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
+    final colors = [AppColors.error, AppColors.textPrimary, AppColors.success, AppColors.warning];
+    final primaryColor = colors[metricIndex];
+    
+    // Draw grid lines
+    _drawGrid(canvas, size);
+    
+    // Draw axes
+    _drawAxes(canvas, size);
+    
+    // Draw data area fill
+    _drawAreaFill(canvas, size, primaryColor);
+    
+    // Draw main line
+    _drawMainLine(canvas, size, primaryColor);
+    
+    // Draw data points
+    _drawDataPoints(canvas, size, primaryColor);
+    
+    // Draw labels
+    _drawLabels(canvas, size);
+  }
 
-    final colors = [AppColors.error, AppColors.secondary, AppColors.success, AppColors.warning];
-    paint.color = colors[metricIndex];
+  void _drawGrid(Canvas canvas, Size size) {
+    final gridPaint = Paint()
+      ..color = AppColors.textSecondary.withValues(alpha: 0.1)
+      ..strokeWidth = 1;
 
+    // Horizontal grid lines
+    for (int i = 0; i <= 5; i++) {
+      final y = (i / 5) * (size.height - 40) + 20;
+      canvas.drawLine(
+        Offset(40, y),
+        Offset(size.width - 20, y),
+        gridPaint,
+      );
+    }
+
+    // Vertical grid lines
+    final data = _generateData();
+    for (int i = 0; i < data.length; i++) {
+      final x = 40 + (i / (data.length - 1)) * (size.width - 60);
+      canvas.drawLine(
+        Offset(x, 20),
+        Offset(x, size.height - 20),
+        gridPaint,
+      );
+    }
+  }
+
+  void _drawAxes(Canvas canvas, Size size) {
+    final axisPaint = Paint()
+      ..color = AppColors.textSecondary.withValues(alpha: 0.3)
+      ..strokeWidth = 2;
+
+    // Y-axis
+    canvas.drawLine(
+      Offset(40, 20),
+      Offset(40, size.height - 20),
+      axisPaint,
+    );
+
+    // X-axis
+    canvas.drawLine(
+      Offset(40, size.height - 20),
+      Offset(size.width - 20, size.height - 20),
+      axisPaint,
+    );
+  }
+
+  void _drawAreaFill(Canvas canvas, Size size, Color color) {
     final data = _generateData();
     final path = Path();
     
+    path.moveTo(40, size.height - 20);
+    
     for (int i = 0; i < data.length; i++) {
-      final x = (i / (data.length - 1)) * size.width;
-      final y = size.height - (data[i] * size.height * animationValue);
+      final x = 40 + (i / (data.length - 1)) * (size.width - 60);
+      final y = size.height - 20 - (data[i] * (size.height - 40) * animationValue);
+      path.lineTo(x, y);
+    }
+    
+    path.lineTo(size.width - 20, size.height - 20);
+    path.close();
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          color.withValues(alpha: 0.3),
+          color.withValues(alpha: 0.05),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    canvas.drawPath(path, fillPaint);
+  }
+
+  void _drawMainLine(Canvas canvas, Size size, Color color) {
+    final data = _generateData();
+    final path = Path();
+    
+    final linePaint = Paint()
+      ..color = color
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    for (int i = 0; i < data.length; i++) {
+      final x = 40 + (i / (data.length - 1)) * (size.width - 60);
+      final y = size.height - 20 - (data[i] * (size.height - 40) * animationValue);
       
       if (i == 0) {
         path.moveTo(x, y);
       } else {
-        path.lineTo(x, y);
+        // Create smooth curves
+        final prevX = 40 + ((i - 1) / (data.length - 1)) * (size.width - 60);
+        final prevY = size.height - 20 - (data[i - 1] * (size.height - 40) * animationValue);
+        final cpX = (prevX + x) / 2;
+        
+        path.quadraticBezierTo(cpX, prevY, x, y);
       }
     }
 
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, linePaint);
+  }
 
-    // Draw points
+  void _drawDataPoints(Canvas canvas, Size size, Color color) {
+    final data = _generateData();
+    
     final pointPaint = Paint()
-      ..color = colors[metricIndex]
+      ..color = color
+      ..style = PaintingStyle.fill;
+      
+    final ringPaint = Paint()
+      ..color = AppColors.textPrimary
       ..style = PaintingStyle.fill;
 
     for (int i = 0; i < data.length; i++) {
-      final x = (i / (data.length - 1)) * size.width;
-      final y = size.height - (data[i] * size.height * animationValue);
-      canvas.drawCircle(Offset(x, y), 4, pointPaint);
+      final x = 40 + (i / (data.length - 1)) * (size.width - 60);
+      final y = size.height - 20 - (data[i] * (size.height - 40) * animationValue);
+      
+      // Animated point size
+      final pointSize = 6 * animationValue;
+      
+      // Draw outer ring
+      canvas.drawCircle(Offset(x, y), pointSize + 2, ringPaint);
+      // Draw inner point
+      canvas.drawCircle(Offset(x, y), pointSize, pointPaint);
+    }
+  }
+
+  void _drawLabels(Canvas canvas, Size size) {
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+
+    // Y-axis labels
+    final maxValue = _getMaxValue();
+    for (int i = 0; i <= 5; i++) {
+      final value = (maxValue * i / 5).toInt();
+      final y = size.height - 20 - (i / 5) * (size.height - 40);
+      
+      textPainter.text = TextSpan(
+        text: value.toString(),
+        style: const TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 10,
+        ),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(5, y - textPainter.height / 2));
+    }
+
+    // X-axis labels
+    final labels = _getTimeLabels();
+    for (int i = 0; i < labels.length; i++) {
+      final x = 40 + (i / (labels.length - 1)) * (size.width - 60);
+      
+      textPainter.text = TextSpan(
+        text: labels[i],
+        style: const TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 10,
+        ),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(x - textPainter.width / 2, size.height - 15));
     }
   }
 
   List<double> _generateData() {
-    final random = Random();
-    return List.generate(7, (index) => 0.3 + random.nextDouble() * 0.4);
+    // Generate realistic data based on metric type
+    switch (metricIndex) {
+      case 0: // Heart Rate
+        return [0.6, 0.7, 0.65, 0.8, 0.75, 0.9, 0.85];
+      case 1: // SpO2
+        return [0.95, 0.97, 0.96, 0.98, 0.97, 0.99, 0.98];
+      case 2: // Steps
+        return [0.3, 0.5, 0.4, 0.7, 0.6, 0.9, 0.8];
+      case 3: // Calories
+        return [0.4, 0.6, 0.5, 0.8, 0.7, 0.9, 0.85];
+      default:
+        return [0.5, 0.6, 0.7, 0.8, 0.6, 0.9, 0.7];
+    }
+  }
+
+  int _getMaxValue() {
+    switch (metricIndex) {
+      case 0: return 100; // Heart Rate
+      case 1: return 100; // SpO2
+      case 2: return 15000; // Steps
+      case 3: return 500; // Calories
+      default: return 100;
+    }
+  }
+
+  List<String> _getTimeLabels() {
+    switch (filterIndex) {
+      case 0: // Day
+        return ['6AM', '9AM', '12PM', '3PM', '6PM', '9PM', '12AM'];
+      case 1: // Week
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      case 2: // Month
+        return ['W1', 'W2', 'W3', 'W4'];
+      default:
+        return ['1', '2', '3', '4', '5', '6', '7'];
+    }
   }
 
   @override

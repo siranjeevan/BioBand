@@ -74,10 +74,6 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
             fontWeight: FontWeight.bold,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
@@ -87,7 +83,6 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                _buildConnectionStatus(),
                 const SizedBox(height: 24),
                 _buildScanAnimation(),
                 const SizedBox(height: 24),
@@ -102,52 +97,6 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
     );
   }
 
-  Widget _buildConnectionStatus() {
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _isConnected ? AppColors.success : AppColors.error,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _isConnected ? 'Connected' : 'Disconnected',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: _isConnected ? AppColors.success : AppColors.error,
-                  ),
-                ),
-                if (_connectedDevice != null)
-                  Text(
-                    _connectedDevice!,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 14,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Icon(
-            _isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
-            color: _isConnected ? AppColors.success : AppColors.error,
-            size: 32,
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildScanAnimation() {
     return SizedBox(
@@ -197,7 +146,7 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
       child: ElevatedButton(
         onPressed: _isScanning ? null : _startScanning,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: AppColors.textPrimary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -207,7 +156,7 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color:AppColors.primary,
           ),
         ),
       ),
@@ -244,11 +193,11 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(alpha: 0.1),
+                    color: AppColors.textPrimary.withValues(alpha: 0.1),
                   ),
                   child: Icon(
                     Icons.watch,
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                     size: 20,
                   ),
                 ),
@@ -314,7 +263,7 @@ class ScanAnimationPainter extends CustomPainter {
       final radius = (size.width / 2) * (animationValue + i * 0.3) % 1;
       final opacity = 1.0 - ((animationValue + i * 0.3) % 1);
       
-      paint.color = AppColors.primary.withValues(alpha: opacity * 0.6);
+      paint.color = AppColors.textPrimary.withValues(alpha: opacity * 0.6);
       canvas.drawCircle(center, radius * size.width / 2, paint);
     }
   }

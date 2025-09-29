@@ -11,6 +11,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isDarkMode = false;
+  bool _isEditing = false;
   
   final Map<String, String> _userInfo = {
     'name': 'John Doe',
@@ -22,6 +23,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     'bloodType': 'O+',
     'emergencyContact': '+1 234 567 8900',
   };
+  
+  late TextEditingController _nameController;
+  late TextEditingController _ageController;
+  late TextEditingController _weightController;
+  late TextEditingController _heightController;
+  late TextEditingController _emergencyController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: _userInfo['name']);
+    _ageController = TextEditingController(text: _userInfo['age']);
+    _weightController = TextEditingController(text: _userInfo['weight']?.replaceAll(' kg', ''));
+    _heightController = TextEditingController(text: _userInfo['height']?.replaceAll(' cm', ''));
+    _emergencyController = TextEditingController(text: _userInfo['emergencyContact']);
+  }
+  
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _weightController.dispose();
+    _heightController.dispose();
+    _emergencyController.dispose();
+    super.dispose();
+  }
 
   final Map<String, String> _deviceInfo = {
     'deviceName': 'Health Band Pro',
@@ -38,6 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text(
           'Profile',
           style: TextStyle(
@@ -45,20 +73,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
+
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit, color: AppColors.textSecondary),
-            onPressed: _editProfile,
+            icon: Icon(
+              _isEditing ? Icons.check : Icons.edit,
+              color: _isEditing ? AppColors.success : AppColors.textSecondary,
+            ),
+            onPressed: _isEditing ? _saveProfile : _toggleEdit,
           ),
+          if (_isEditing)
+            IconButton(
+              icon: const Icon(Icons.close, color: AppColors.error),
+              onPressed: _cancelEdit,
+            ),
         ],
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
+             child: ScrollConfiguration(
+  behavior: const ScrollBehavior().copyWith(overscroll: false),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -74,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildActions(),
               ],
             ),
-          ),
+          ),)
         ),
       ),
     );
@@ -91,7 +126,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 radius: 50,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                 child: Text(
-                  _userInfo['name']!.split(' ').map((n) => n[0]).join(),
+                  _userInfo['name']!.isNotEmpty 
+                      ? _userInfo['name']!.split(' ').where((n) => n.isNotEmpty).map((n) => n[0]).join()
+                      : 'U',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
@@ -120,8 +157,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            _userInfo['name']!,
+          _isEditing
+              ? SizedBox(
+                  width: 200,
+                  child: TextField(
+                    controller: _nameController,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    decoration: const InputDecoration(
+                      border: UnderlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.textPrimary),
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.textPrimary),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.textPrimary, width: 2),
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                )
+              : Text(
+                  _userInfo['name']!,
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -139,9 +201,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatItem('Age', _userInfo['age']!),
-              _buildStatItem('Weight', _userInfo['weight']!),
-              _buildStatItem('Height', _userInfo['height']!),
+              _buildEditableStatItem('Age', _ageController, ''),
+              _buildEditableStatItem('Weight', _weightController, 'kg'),
+              _buildEditableStatItem('Height', _heightController, 'cm'),
             ],
           ),
         ],
@@ -171,6 +233,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildEditableStatItem(String label, TextEditingController controller, String unit) {
+    return Column(
+      children: [
+        _isEditing
+            ? SizedBox(
+                width: 60,
+                child: TextField(
+                  controller: controller,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  decoration: const InputDecoration(
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.textPrimary),
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.textPrimary),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.textPrimary, width: 2),
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              )
+            : Text(
+                '${controller.text}${unit.isNotEmpty ? ' $unit' : ''}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditableInfoRow(String label, TextEditingController controller, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.textPrimary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: _isEditing
+                ? TextField(
+                    controller: controller,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    decoration: const InputDecoration(
+                      border: UnderlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.textPrimary),
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.textPrimary),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.textPrimary, width: 2),
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  )
+                : Text(
+                    controller.text,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildUserInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +353,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               _buildInfoRow('Gender', _userInfo['gender']!, Icons.person),
               _buildInfoRow('Blood Type', _userInfo['bloodType']!, Icons.bloodtype),
-              _buildInfoRow('Emergency Contact', _userInfo['emergencyContact']!, Icons.phone),
+              _buildEditableInfoRow('Emergency Contact', _emergencyController, Icons.phone),
             ],
           ),
         ),
@@ -274,6 +437,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildInfoRow('Battery Level', _deviceInfo['batteryLevel']!, Icons.battery_full),
               _buildInfoRow('Firmware', _deviceInfo['firmwareVersion']!, Icons.system_update),
               _buildInfoRow('Last Sync', _deviceInfo['lastSync']!, Icons.sync),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: _logoutDevice,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.error),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Logout Device',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.error,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -396,6 +581,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onTap: onTap,
     );
   }
+  
 
   Widget _buildActions() {
     return Column(
@@ -445,6 +631,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ],
     );
+  }
+
+  void _toggleEdit() {
+    setState(() {
+      _isEditing = true;
+    });
+  }
+
+  void _saveProfile() {
+    setState(() {
+      _userInfo['name'] = _nameController.text;
+      _userInfo['age'] = _ageController.text;
+      _userInfo['weight'] = '${_weightController.text} kg';
+      _userInfo['height'] = '${_heightController.text} cm';
+      _userInfo['emergencyContact'] = _emergencyController.text;
+      _isEditing = false;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Profile updated successfully!'),
+        backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _nameController.text = _userInfo['name']!;
+      _ageController.text = _userInfo['age']!;
+      _weightController.text = _userInfo['weight']!.replaceAll(' kg', '');
+      _heightController.text = _userInfo['height']!.replaceAll(' cm', '');
+      _emergencyController.text = _userInfo['emergencyContact']!;
+      _isEditing = false;
+    });
   }
 
   void _editProfile() {
@@ -545,6 +766,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Export', style: TextStyle(color: AppColors.textPrimary)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _logoutDevice() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Logout Device',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+        content: const Text(
+          'Are you sure you want to logout the current device? You will be redirected to device connection.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushReplacementNamed(context, '/device-connect');
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Logout Device', style: TextStyle(color: AppColors.textPrimary)),
           ),
         ],
       ),

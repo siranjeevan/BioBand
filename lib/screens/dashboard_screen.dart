@@ -58,6 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text(
           'Vitals Tracking',
           style: TextStyle(
@@ -65,85 +66,32 @@ class _DashboardScreenState extends State<DashboardScreen>
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: AppColors.textPrimary),
-            onPressed: () => setState(() => _lastSynced = DateTime.now()),
-          ),
-        ],
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
+               child: ScrollConfiguration(
+  behavior: const ScrollBehavior().copyWith(overscroll: false),
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildSyncStatus(),
-                const SizedBox(height: 24),
-                _buildVitalCards(),
                 const SizedBox(height: 24),
                 _buildHealthInsights(),
+                const SizedBox(height: 24),
+                 _buildVitalCards(),
                 const SizedBox(height: 24),
                 _buildQuickStats(),
               ],
             ),
-          ),
+          ),)
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  Widget _buildSyncStatus() {
-    final timeDiff = DateTime.now().difference(_lastSynced);
-    final syncText =
-        timeDiff.inMinutes < 1 ? 'Just now' : '${timeDiff.inMinutes}m ago';
-
-    return GlassContainer(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.success,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Device Connected',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                Text(
-                  'Last synced: $syncText',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(
-            Icons.bluetooth_connected,
-            color: AppColors.success,
-            size: 24,
-          ),
-        ],
-      ),
-    );
-  }
+  
 
   Widget _buildVitalCards() {
     return GridView.count(
@@ -449,8 +397,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           BottomNavigationBarItem(
               icon: Icon(Icons.psychology), label: 'AI Analytics'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.favorite), label: 'Health'),
-          BottomNavigationBarItem(
               icon: Icon(Icons.assessment), label: 'Reports'),
           BottomNavigationBarItem(
               icon: Icon(Icons.person), label: 'Profile'),
@@ -461,12 +407,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               Navigator.pushNamed(context, '/ai-analytics');
               break;
             case 2:
-              Navigator.pushNamed(context, '/health');
-              break;
-            case 3:
               Navigator.pushNamed(context, '/reports');
               break;
-            case 4:
+            case 3:
               Navigator.pushNamed(context, '/profile');
               break;
           }
