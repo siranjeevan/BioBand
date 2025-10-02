@@ -95,6 +95,8 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
                 _buildScanButton(),
                 const SizedBox(height: 16),
                 _buildDeviceList(),
+                const SizedBox(height: 24),
+                _buildLoginWithDeviceIdButton(),
               ],
             ),
           ),
@@ -241,6 +243,30 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildLoginWithDeviceIdButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: OutlinedButton(
+        onPressed: () => Navigator.pushNamed(context, '/device-login'),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: AppColors.textPrimary, width: 2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: const Text(
+          'Login with Device ID',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ),
     );
   }
 }
