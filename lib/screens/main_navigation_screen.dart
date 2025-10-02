@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design_system/app_colors.dart';
+import '../models/device_state.dart';
 import 'dashboard_screen.dart';
 import 'ai_analytics_screen.dart';
 import 'reports_screen.dart';
@@ -15,24 +16,36 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late int _currentIndex;
+  final GlobalKey<DashboardScreenState> _dashboardKey = GlobalKey<DashboardScreenState>();
+
   
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const AiAnalyticsScreen(),
-    const ReportsScreen(),
-    const ProfileScreen(),
-  ];
+  late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _screens = [
+      DashboardScreen(key: _dashboardKey),
+      const AiAnalyticsScreen(),
+      const ReportsScreen(),
+      const ProfileScreen(),
+    ];
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_currentIndex == 0 && !DeviceState.isConnected) {
+        _dashboardKey.currentState?.showNoDeviceDialog();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.surface.withValues(alpha: 0.9),
@@ -49,6 +62,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             setState(() {
               _currentIndex = index;
             });
+            if (index == 0 && !DeviceState.isConnected) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _dashboardKey.currentState?.showNoDeviceDialog();
+              });
+            }
           },
           items: const [
             BottomNavigationBarItem(

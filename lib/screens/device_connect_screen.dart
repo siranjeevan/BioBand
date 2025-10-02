@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
+import '../models/device_state.dart';
 
 class DeviceConnectScreen extends StatefulWidget {
   const DeviceConnectScreen({super.key});
@@ -56,8 +57,10 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
       _connectedDevice = device.name;
     });
     
+    DeviceState.connect(device.name);
+    
     Timer(const Duration(seconds: 1), () {
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      Navigator.pushReplacementNamed(context, '/main');
     });
   }
 
@@ -83,7 +86,6 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const SizedBox(height: 24),
                 _buildScanAnimation(),
                 const SizedBox(height: 24),
                 _buildScanButton(),

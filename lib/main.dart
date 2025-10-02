@@ -194,6 +194,7 @@ class NadiParikshaApp extends StatelessWidget {
         '/onboarding': (context) => const OnboardingScreen(),
         '/login': (context) => const LoginScreen(),
         '/device-connect': (context) => const DeviceConnectScreen(),
+        '/main': (context) => const MainNavigationScreen(initialIndex: 0),
         '/dashboard': (context) => const MainNavigationScreen(initialIndex: 0),
         '/reports': (context) => const MainNavigationScreen(initialIndex: 2),
         '/profile': (context) => const MainNavigationScreen(initialIndex: 3),

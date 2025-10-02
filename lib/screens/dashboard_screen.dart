@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
 import '../models/sensor_data.dart';
+import '../models/device_state.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<DashboardScreen> createState() => DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin {
+class DashboardScreenState extends State<DashboardScreen>
+    with TickerProviderStateMixin, RouteAware {
   late AnimationController _animationController;
   Timer? _dataTimer;
   DateTime _lastSynced = DateTime.now();
   late List<Bubble> _bubbles;
   late List<FlameParticle> _flames;
+  bool _isFromDeviceConnect = false;
 
   @override
   void initState() {
@@ -31,6 +34,36 @@ class _DashboardScreenState extends State<DashboardScreen>
     _flames = List.generate(12, (index) => FlameParticle());
     _animationController.repeat();
     _startDataUpdates();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkDeviceAndShowDialog();
+      didPopNext();
+    });
+  }
+
+  void _checkDeviceAndShowDialog() {
+    if (DeviceState.isConnected && mounted) {
+      showNoDeviceDialog();
+    }
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _isFromDeviceConnect = true;
+    if (DeviceState.isConnected && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showNoDeviceDialog();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(DashboardScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkDeviceAndShowDialog();
+    });
   }
 
   @override
@@ -39,6 +72,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     _dataTimer?.cancel();
     super.dispose();
   }
+
+
 
   void _startDataUpdates() {
     _dataTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -67,31 +102,40 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
-        child: SafeArea(
-               child: ScrollConfiguration(
-  behavior: const ScrollBehavior().copyWith(overscroll: false),
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                _buildHealthInsights(),
-                const SizedBox(height: 24),
-                 _buildVitalCards(),
-                const SizedBox(height: 24),
-                _buildQuickStats(),
-              ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+            child: SafeArea(
+              child: ScrollConfiguration(
+                behavior: const ScrollBehavior().copyWith(overscroll: false),
+                child: SingleChildScrollView(
+                  physics: !DeviceState.isConnected ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildHealthInsights(),
+                      const SizedBox(height: 24),
+                      _buildVitalCards(),
+                      const SizedBox(height: 24),
+                      _buildQuickStats(),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),)
-        ),
+          ),
+          if (!DeviceState.isConnected)
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.3),
+              ),
+            ),
+        ],
       ),
     );
   }
-
-  
 
   Widget _buildVitalCards() {
     return GridView.count(
@@ -305,6 +349,81 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
+  void showNoDeviceDialog() {
+    if (!mounted) return;
+    if (!DeviceState.isConnected || _isFromDeviceConnect) {
+      _isFromDeviceConnect = false;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (context) => PopScope(
+        canPop: false,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            child: GlassContainer(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.bluetooth_disabled,
+                    size: 60,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No Device Connected',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Please connect your health device to view vitals',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/device-connect');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Connect Device',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    }
+  }
+
   Widget _buildQuickStats() {
     return Row(
       children: [
@@ -376,45 +495,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.9),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.psychology), label: 'AI Analytics'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.assessment), label: 'Reports'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: 'Profile'),
-        ],
-        onTap: (index) {
-          switch (index) {
-            case 1:
-              Navigator.pushNamed(context, '/ai-analytics');
-              break;
-            case 2:
-              Navigator.pushNamed(context, '/reports');
-              break;
-            case 3:
-              Navigator.pushNamed(context, '/profile');
-              break;
-          }
-        },
-      ),
     );
   }
 }

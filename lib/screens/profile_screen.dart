@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
+import '../models/device_state.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -50,13 +51,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  final Map<String, String> _deviceInfo = {
-    'deviceName': 'Health Band Pro',
-    'deviceId': 'HB-001',
-    'batteryLevel': '85%',
-    'firmwareVersion': '2.1.4',
-    'lastSync': '2 minutes ago',
-    'connectionStatus': 'Connected',
+  Map<String, String> get _deviceInfo => {
+    'deviceName': DeviceState.isConnected ? DeviceState.deviceName : 'No Device',
+    'deviceId': DeviceState.isConnected ? 'HB-001' : '--',
+    'batteryLevel': DeviceState.isConnected ? '85%' : '--',
+    'firmwareVersion': DeviceState.isConnected ? '2.1.4' : '--',
+    'lastSync': DeviceState.isConnected ? '2 minutes ago' : '--',
+    'connectionStatus': DeviceState.isConnected ? 'Connected' : 'Disconnected',
   };
 
   @override
@@ -419,13 +420,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.2),
+                      color: DeviceState.isConnected 
+                          ? AppColors.success.withValues(alpha: 0.2)
+                          : AppColors.error.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       _deviceInfo['connectionStatus']!,
-                      style: const TextStyle(
-                        color: AppColors.success,
+                      style: TextStyle(
+                        color: DeviceState.isConnected ? AppColors.success : AppColors.error,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -441,23 +444,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 48,
-                child: OutlinedButton(
-                  onPressed: _logoutDevice,
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.error),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Logout Device',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.error,
-                    ),
-                  ),
-                ),
+                child: DeviceState.isConnected
+                    ? OutlinedButton(
+                        onPressed: _logoutDevice,
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.error),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Logout Device',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      )
+                    : ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(context, '/device-connect'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Connect Device',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
               ),
             ],
           ),
@@ -783,7 +804,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(color: AppColors.textPrimary),
         ),
         content: const Text(
-          'Are you sure you want to logout the current device? You will be redirected to device connection.',
+          'Are you sure you want to logout the current device?',
           style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
@@ -794,7 +815,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/device-connect');
+              DeviceState.disconnect();
+              setState(() {});
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Device disconnected successfully'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Logout Device', style: TextStyle(color: AppColors.textPrimary)),
