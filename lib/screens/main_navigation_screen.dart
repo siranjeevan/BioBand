@@ -95,7 +95,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with RouteA
           onTap: (index) {
             setState(() {
               _currentIndex = index;
-              if (index != 0) _dialogDismissedByUser = false; // Reset when switching away from dashboard
+              if (index != 0) _dialogDismissedByUser = false;
             });
             if (index == 0 && !DeviceState.isConnected && !_dialogDismissedByUser) {
               WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -110,10 +110,16 @@ class DashboardScreenState extends State<DashboardScreen>
             ),
           ),
           if (!DeviceState.isConnected)
-            BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.3),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 80, // Leave space for bottom navigation
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                ),
               ),
             ),
         ],

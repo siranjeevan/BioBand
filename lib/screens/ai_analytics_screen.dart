@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
 
@@ -12,39 +14,110 @@ class AiAnalyticsScreen extends StatefulWidget {
 
 class _AiAnalyticsScreenState extends State<AiAnalyticsScreen>
     with TickerProviderStateMixin {
+  final TextEditingController _messageController = TextEditingController();
+  final List<Map<String, String>> _chatMessages = [];
+  late AnimationController _floatingController;
   late AnimationController _pulseController;
   late AnimationController _rotateController;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _rotateAnimation;
+  late List<FloatingParticle> _particles;
+  late List<WatchLogo> _watchLogos;
+  bool _isLoading = false;
+  
+  static const String apiKey = 'AIzaSyBx4_h7kQdD_zGzIeQ9MctV45S-cwbBcXY';
+  static const String apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
   @override
   void initState() {
     super.initState();
+    _floatingController = AnimationController(
+      duration: const Duration(seconds: 20),
+      vsync: this,
+    )..repeat();
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
-    );
+    )..repeat(reverse: true);
     _rotateController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 15),
       vsync: this,
-    );
-    
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    _rotateAnimation = Tween<double>(begin: 0, end: 2 * pi).animate(
-      CurvedAnimation(parent: _rotateController, curve: Curves.linear),
-    );
-    
-    _pulseController.repeat(reverse: true);
-    _rotateController.repeat();
+    )..repeat();
+    _particles = List.generate(15, (index) => FloatingParticle());
+    _watchLogos = List.generate(5, (index) => WatchLogo());
   }
 
   @override
   void dispose() {
+    _floatingController.dispose();
     _pulseController.dispose();
     _rotateController.dispose();
+    _messageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _sendMessage() async {
+    if (_messageController.text.trim().isEmpty) return;
+    
+    final userMessage = _messageController.text.trim();
+    _messageController.clear();
+    
+    setState(() {
+      _chatMessages.add({
+        'role': 'user',
+        'content': userMessage
+      });
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('$apiUrl?key=$apiKey'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'contents': [
+            {
+              'parts': [
+                {'text': 'You are a health AI assistant. Answer this health-related question: $userMessage'}
+              ]
+            }
+          ],
+          'generationConfig': {
+            'maxOutputTokens': 1000,
+          }
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        String aiResponse = data['candidates'][0]['content']['parts'][0]['text'];
+        
+        setState(() {
+          _chatMessages.add({
+            'role': 'assistant',
+            'content': aiResponse
+          });
+        });
+      } else {
+        setState(() {
+          _chatMessages.add({
+            'role': 'assistant',
+            'content': 'Sorry, I encountered an error. Please try again.'
+          });
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _chatMessages.add({
+          'role': 'assistant',
+          'content': 'Sorry, I\'m having trouble connecting. Please check your internet connection.'
+        });
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -54,143 +127,405 @@ class _AiAnalyticsScreenState extends State<AiAnalyticsScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
-          'AI Analytics',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildAnimatedIcon(),
-                  const SizedBox(height: 40),
-                  _buildComingSoonText(),
-                  const SizedBox(height: 24),
-                  _buildDescription(),
-                  const SizedBox(height: 40),
-                  _buildFeaturesList(),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnimatedIcon() {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_pulseAnimation, _rotateAnimation]),
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _pulseAnimation.value,
-          child: Transform.rotate(
-            angle: _rotateAnimation.value,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: AppColors.gradient1,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.4),
-                    blurRadius: 30,
-                    spreadRadius: 10,
+        title: Row(
+          children: [
+            AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: 1.0 + _pulseController.value * 0.1,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.6)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.psychology, color: Colors.white, size: 20),
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.psychology,
-                size: 60,
-                color: Colors.white,
+                );
+              },
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'AI Analytics',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildComingSoonText() {
-    return const Text(
-      'Coming Soon',
-      style: TextStyle(
-        fontSize: 36,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
-
-  Widget _buildDescription() {
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      child: const Text(
-        'Advanced AI-powered health analytics and insights are being developed to provide you with personalized health recommendations.',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 16,
-          color: AppColors.textSecondary,
-          height: 1.5,
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFeaturesList() {
-    final features = [
-      'Predictive Health Analysis',
-      'Personalized Recommendations',
-      'Trend Pattern Recognition',
-      'Risk Assessment',
-    ];
-
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          const Text(
-            'Upcoming Features:',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+          Container(
+            decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
           ),
-          const SizedBox(height: 16),
-          ...features.map((feature) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
+          AnimatedBuilder(
+            animation: _floatingController,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: ParticlesPainter(_particles, _floatingController.value),
+                size: Size.infinite,
+              );
+            },
+          ),
+          AnimatedBuilder(
+            animation: _rotateController,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: WatchLogoPainter(_watchLogos, _rotateController.value),
+                size: Size.infinite,
+              );
+            },
+          ),
+          SafeArea(
+            child: Column(
               children: [
-                const Icon(
-                  Icons.check_circle_outline,
-                  color: AppColors.success,
-                  size: 20,
+                Expanded(
+                  child: _chatMessages.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AnimatedBuilder(
+                                animation: _pulseController,
+                                builder: (context, child) {
+                                  return Transform.scale(
+                                    scale: 1.0 + _pulseController.value * 0.2,
+                                    child: Container(
+                                      width: 100,
+                                      height: 100,
+                                      decoration: BoxDecoration(
+                                        gradient: RadialGradient(
+                                          colors: [
+                                            AppColors.primary.withValues(alpha: 0.3),
+                                            AppColors.primary.withValues(alpha: 0.1),
+                                          ],
+                                        ),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.psychology,
+                                        size: 50,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 24),
+                              const Text(
+                                'AI Health Assistant',
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Ask me anything about your health',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _chatMessages.length,
+                          itemBuilder: (context, index) {
+                            final message = _chatMessages[index];
+                            final isUser = message['role'] == 'user';
+                            
+                            return AnimatedContainer(
+                              duration: Duration(milliseconds: 300 + (index * 100)),
+                              curve: Curves.easeOutBack,
+                              child: Align(
+                                alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    gradient: isUser
+                                        ? LinearGradient(
+                                            colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+                                          )
+                                        : LinearGradient(
+                                            colors: [
+                                              AppColors.surface.withValues(alpha: 0.3),
+                                              AppColors.surface.withValues(alpha: 0.1),
+                                            ],
+                                          ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.1),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    message['content'] ?? '',
+                                    style: TextStyle(
+                                      color: isUser ? Colors.white : AppColors.textPrimary,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  feature,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
+                // Add loading indicator
+                if (_isLoading)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          'AI is thinking...',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.surface.withValues(alpha: 0.3),
+                        AppColors.surface.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+                          decoration: const InputDecoration(
+                            hintText: 'Type your health question...',
+                            hintStyle: TextStyle(color: AppColors.textSecondary),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onSubmitted: (_) => _sendMessage(),
+                        ),
+                      ),
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: 1.0 + _pulseController.value * 0.05,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.send_rounded, color: Colors.white),
+                                onPressed: _isLoading ? null : _sendMessage,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          )),
+          ),
         ],
       ),
     );
   }
+}
+
+// Include all the missing classes
+class FloatingParticle {
+  late double x;
+  late double y;
+  late double size;
+  late double speed;
+  late Color color;
+  late double opacity;
+
+  FloatingParticle() {
+    final random = Random();
+    x = random.nextDouble();
+    y = random.nextDouble();
+    size = 2 + random.nextDouble() * 4;
+    speed = 0.1 + random.nextDouble() * 0.3;
+    opacity = 0.1 + random.nextDouble() * 0.3;
+    color = [AppColors.primary, AppColors.textPrimary, Colors.white][random.nextInt(3)];
+  }
+
+  void update() {
+    y -= speed * 0.01;
+    x += sin(y * 10) * 0.001;
+    if (y < -0.1) {
+      y = 1.1;
+      x = Random().nextDouble();
+    }
+  }
+}
+
+class WatchLogo {
+  late double x;
+  late double y;
+  late double size;
+  late double speed;
+  late double rotation;
+  late double opacity;
+
+  WatchLogo() {
+    final random = Random();
+    x = random.nextDouble();
+    y = random.nextDouble();
+    size = 30 + random.nextDouble() * 40;
+    speed = 0.05 + random.nextDouble() * 0.1;
+    rotation = random.nextDouble() * 2 * pi;
+    opacity = 0.05 + random.nextDouble() * 0.1;
+  }
+
+  void update(double animationValue) {
+    y -= speed * 0.01;
+    rotation += 0.02;
+    if (y < -0.2) {
+      y = 1.2;
+      x = Random().nextDouble();
+    }
+  }
+}
+
+class ParticlesPainter extends CustomPainter {
+  final List<FloatingParticle> particles;
+  final double animationValue;
+
+  ParticlesPainter(this.particles, this.animationValue);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var particle in particles) {
+      particle.update();
+      
+      final paint = Paint()
+        ..color = particle.color.withValues(alpha: particle.opacity)
+        ..style = PaintingStyle.fill;
+
+      final center = Offset(
+        particle.x * size.width,
+        particle.y * size.height,
+      );
+
+      canvas.drawCircle(center, particle.size, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class WatchLogoPainter extends CustomPainter {
+  final List<WatchLogo> watchLogos;
+  final double animationValue;
+
+  WatchLogoPainter(this.watchLogos, this.animationValue);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var watch in watchLogos) {
+      watch.update(animationValue);
+      
+      final center = Offset(
+        watch.x * size.width,
+        watch.y * size.height,
+      );
+
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(watch.rotation);
+      
+      _drawWatch(canvas, watch.size, watch.opacity);
+      
+      canvas.restore();
+    }
+  }
+
+  void _drawWatch(Canvas canvas, double size, double opacity) {
+    final paint = Paint()
+      ..color = AppColors.primary.withValues(alpha: opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    // Watch face
+    canvas.drawCircle(Offset.zero, size * 0.4, paint);
+    
+    // Watch band
+    final bandPaint = Paint()
+      ..color = AppColors.textSecondary.withValues(alpha: opacity * 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    
+    canvas.drawLine(
+      Offset(-size * 0.4, -size * 0.1),
+      Offset(-size * 0.6, -size * 0.1),
+      bandPaint,
+    );
+    canvas.drawLine(
+      Offset(size * 0.4, -size * 0.1),
+      Offset(size * 0.6, -size * 0.1),
+      bandPaint,
+    );
+    
+    // Watch hands
+    final handPaint = Paint()
+      ..color = AppColors.primary.withValues(alpha: opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    
+    canvas.drawLine(
+      Offset.zero,
+      Offset(0, -size * 0.2),
+      handPaint,
+    );
+    canvas.drawLine(
+      Offset.zero,
+      Offset(size * 0.15, 0),
+      handPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
