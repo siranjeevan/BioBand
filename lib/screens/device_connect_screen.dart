@@ -70,6 +70,10 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/reports'),
+        ),
         title: const Text(
           'Connect Your Device',
           style: TextStyle(

@@ -6,16 +6,18 @@ import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
 import '../models/sensor_data.dart';
 import '../models/device_state.dart';
+import 'main_navigation_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final VoidCallback? onDialogDismissed;
+  const DashboardScreen({super.key, this.onDialogDismissed});
 
   @override
   State<DashboardScreen> createState() => DashboardScreenState();
 }
 
 class DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin, RouteAware {
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   Timer? _dataTimer;
   DateTime _lastSynced = DateTime.now();
@@ -34,37 +36,19 @@ class DashboardScreenState extends State<DashboardScreen>
     _flames = List.generate(12, (index) => FlameParticle());
     _animationController.repeat();
     _startDataUpdates();
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkDeviceAndShowDialog();
-      didPopNext();
-    });
   }
 
+
+
   void _checkDeviceAndShowDialog() {
-    if (DeviceState.isConnected && mounted) {
+    if (!DeviceState.isConnected && mounted) {
       showNoDeviceDialog();
     }
   }
 
-  @override
-  void didPopNext() {
-    super.didPopNext();
-    _isFromDeviceConnect = true;
-    if (DeviceState.isConnected && mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showNoDeviceDialog();
-      });
-    }
-  }
 
-  @override
-  void didUpdateWidget(DashboardScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkDeviceAndShowDialog();
-    });
-  }
+
+
 
   @override
   void dispose() {
@@ -350,15 +334,19 @@ class DashboardScreenState extends State<DashboardScreen>
   }
 
   void showNoDeviceDialog() {
-    if (!mounted) return;
-    if (!DeviceState.isConnected || _isFromDeviceConnect) {
-      _isFromDeviceConnect = false;
+    if (!mounted || DeviceState.isConnected) return;
     showDialog(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (context) => PopScope(
-        canPop: false,
+        canPop: true,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            // User dismissed dialog with back button
+            widget.onDialogDismissed?.call();
+          }
+        },
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: Dialog(
@@ -421,7 +409,6 @@ class DashboardScreenState extends State<DashboardScreen>
         ),
       ),
     );
-    }
   }
 
   Widget _buildQuickStats() {

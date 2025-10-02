@@ -10,6 +10,8 @@ import 'screens/profile_screen.dart';
 import 'screens/ai_analytics_screen.dart';
 import 'screens/main_navigation_screen.dart';
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 void main() {
   runApp(const NadiParikshaApp());
 }
@@ -22,6 +24,7 @@ class NadiParikshaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Bio Band',
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [routeObserver],
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: const ColorScheme.dark(

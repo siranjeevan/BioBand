@@ -1,6 +1,6 @@
 class DeviceState {
-  static bool _isConnected = true;
-  static String _deviceName = 'Health Band Pro';
+  static bool _isConnected = false;
+  static String _deviceName = '';
   
   static bool get isConnected => _isConnected;
   static String get deviceName => _deviceName;
