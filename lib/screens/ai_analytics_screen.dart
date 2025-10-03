@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
+import '../config/environment.dart';
 
 class AiAnalyticsScreen extends StatefulWidget {
   const AiAnalyticsScreen({super.key});
@@ -23,7 +24,7 @@ class _AiAnalyticsScreenState extends State<AiAnalyticsScreen>
   late List<WatchLogo> _watchLogos;
   bool _isLoading = false;
   
-  static const String apiUrl = 'http://192.168.1.6:8000/chat';
+  String get apiUrl => '${Environment.apiBaseUrl}/chat';
 
   @override
   void initState() {
@@ -79,8 +80,9 @@ class _AiAnalyticsScreenState extends State<AiAnalyticsScreen>
       );
 
       if (response.statusCode == 200) {
+        print('API Response: ${response.body}');
         final data = jsonDecode(response.body);
-        String aiResponse = data['response'] ?? 'No response received';
+        String aiResponse = data['answer'] ?? data['response'] ?? data['message'] ?? data['reply'] ?? 'No response received';
         
         setState(() {
           _chatMessages.add({

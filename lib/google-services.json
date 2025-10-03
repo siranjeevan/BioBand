@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "52957570887-sse8hpmriuoq90jibba6a99eqelr0arq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nadi_pariksh",
+            "certificate_hash": "73189cd350808df300b5404cbead0189019582c3"
+          }
+        },
+        {
           "client_id": "52957570887-qmc89ibu0m6p1ud8rg4kdovnp0u8sjnj.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "52957570887-qmc89ibu0m6p1ud8rg4kdovnp0u8sjnj.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "52957570887-l53o8i006qcs4uv3q6ri1r8d495m0up7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.nadiPariksh"
+              }
             }
           ]
         }

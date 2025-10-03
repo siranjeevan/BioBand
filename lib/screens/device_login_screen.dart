@@ -37,8 +37,9 @@ class _DeviceLoginScreenState extends State<DeviceLoginScreen> {
     });
 
     try {
+      const apiUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://bio-band-backend.vercel.app');
       final response = await http.get(
-        Uri.parse('https://test-cu0mkzf55-praveens-projects-79540d8d.vercel.app/devices/'),
+        Uri.parse('$apiUrl/devices/'),
         headers: {'Content-Type': 'application/json'},
       ).timeout(const Duration(seconds: 10));
 

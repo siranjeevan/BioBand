@@ -1,6 +1,11 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class Environment {
-  static const String apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'https://test-cu0mkzf55-praveens-projects-79540d8d.vercel.app',
-  );
+  static String get apiBaseUrl {
+    try {
+      return dotenv.env['API_BASE_URL'] ?? 'https://bio-band-backend.vercel.app';
+    } catch (e) {
+      return 'https://bio-band-backend.vercel.app';
+    }
+  }
 }

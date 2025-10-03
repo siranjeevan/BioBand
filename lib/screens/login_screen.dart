@@ -240,16 +240,41 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                     ),
             ),
           ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/device-connect');
+              },
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.textSecondary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Text(
+                'Test Button',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           TextButton(
-      onPressed: () {},
-      child: Text(
-        'Forgot Password?',
-        style: TextStyle(
-          color: AppColors.textSecondary,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    )
+            onPressed: () {},
+            child: const Text(
+              'Forgot Password?',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          )
           ],
         ),
       ),
