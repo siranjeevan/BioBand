@@ -19,6 +19,9 @@ class DashboardScreen extends StatefulWidget {
 class DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
+  late AnimationController _insightAnimationController;
+  late Animation<double> _slideAnimation;
+  late Animation<double> _fadeAnimation;
   Timer? _dataTimer;
   DateTime _lastSynced = DateTime.now();
   late List<Bubble> _bubbles;
@@ -32,9 +35,20 @@ class DashboardScreenState extends State<DashboardScreen>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+    _insightAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _slideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _insightAnimationController, curve: Curves.easeOutBack),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _insightAnimationController, curve: Curves.easeIn),
+    );
     _bubbles = List.generate(8, (index) => Bubble());
     _flames = List.generate(12, (index) => FlameParticle());
     _animationController.repeat();
+    _insightAnimationController.forward();
     _startDataUpdates();
   }
 
@@ -53,6 +67,7 @@ class DashboardScreenState extends State<DashboardScreen>
   @override
   void dispose() {
     _animationController.dispose();
+    _insightAnimationController.dispose();
     _dataTimer?.cancel();
     super.dispose();
   }
@@ -180,42 +195,86 @@ class DashboardScreenState extends State<DashboardScreen>
     required Color color,
     required String animationType,
   }) {
-    return GlassContainer(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildAnimation(animationType, color),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: color,
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.0 + sin(_animationController.value * 2 * pi) * 0.02,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  color.withValues(alpha: 0.05),
+                  color.withValues(alpha: 0.02),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: color.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
+            child: GlassContainer(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [color.withValues(alpha: 0.2), color.withValues(alpha: 0.1)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _buildAnimation(animationType, color),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        unit,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: color.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ),
-          Text(
-            unit,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -254,90 +313,66 @@ class DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildHealthInsights() {
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Health Insights',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+    return Stack(
+      children: [
+        // Background animation
+        Positioned.fill(
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: HealthParticlesPainter(_animationController.value),
+              );
+            },
           ),
-          const SizedBox(height: 16),
-          _buildInsightItem(
-            'Overall Health Score',
-            '85/100',
-            'Excellent health metrics detected',
-            Icons.health_and_safety,
-            AppColors.success,
+        ),
+        GlassContainer(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: 1.0 + sin(_animationController.value * 2 * pi) * 0.1,
+                        child: const Icon(
+                          Icons.health_and_safety,
+                          color: AppColors.success,
+                          size: 24,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Health Status: Optimal',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Your recent vitals indicate a strong and stable condition.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
-          _buildInsightItem(
-            'Activity Level',
-            'High',
-            'You\'re meeting daily activity goals',
-            Icons.trending_up,
-            AppColors.textPrimary,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildInsightItem(String title, String value, String description, IconData icon, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   void showNoDeviceDialog() {
     if (!mounted || DeviceState.isConnected) return;
@@ -421,75 +456,111 @@ class DashboardScreenState extends State<DashboardScreen>
     return Row(
       children: [
         Expanded(
+          child: _buildTemperatureCard('28°C', 'Skin Temp', AppColors.error),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildActivityCard(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTemperatureCard(String temp, String label, Color color) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.0 + sin(_animationController.value * 2 * pi) * 0.02,
           child: GlassContainer(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               children: [
-                const Text(
-                  'Today\'s Goal',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Transform.rotate(
+                      angle: sin(_animationController.value * 2 * pi) * 0.1,
+                      child: Icon(
+                        Icons.thermostat,
+                        color: color,
+                        size: 20,
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${((SensorData.steps / 10000) * 100).toInt()}%',
+                  temp,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  label,
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 10,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActivityCard() {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.0 + sin(_animationController.value * 2 * pi) * 0.02,
+          child: GlassContainer(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Transform.rotate(
+                      angle: sin(_animationController.value * 2 * pi) * 0.1,
+                      child: const Icon(
+                        Icons.directions_walk,
+                        color: AppColors.success,
+                        size: 20,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Active',
+                  style: TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.success,
                   ),
                 ),
                 const Text(
-                  'Steps Goal',
+                  'Walking',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: GlassContainer(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const Text(
-                  'Weekly Avg',
-                  style: TextStyle(
+                    fontSize: 10,
                     color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${SensorData.heartRate - 5}',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.error,
-                  ),
-                ),
-                const Text(
-                  'Heart Rate',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
+
+
 }
 
 class Bubble {
@@ -612,6 +683,30 @@ class FlamePainter extends CustomPainter {
         ),
         paint,
       );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class HealthParticlesPainter extends CustomPainter {
+  final double animationValue;
+
+  HealthParticlesPainter(this.animationValue);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.success.withValues(alpha: 0.1)
+      ..style = PaintingStyle.fill;
+
+    for (int i = 0; i < 5; i++) {
+      final offset = Offset(
+        (i * 0.2 + animationValue * 0.1) * size.width,
+        sin(animationValue * 2 * pi + i) * 10 + size.height * 0.5,
+      );
+      canvas.drawCircle(offset, 3, paint);
     }
   }
 
