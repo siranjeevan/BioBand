@@ -1,14 +1,25 @@
+// android/app/build.gradle.kts
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    // The Flutter Gradle Plugin must be applied after Android and Kotlin
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
+
+
 
 android {
     namespace = "com.example.nadi_pariksh"
     compileSdk = 34
     ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId = "com.example.nadi_pariksh"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -17,14 +28,6 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
-    defaultConfig {
-        applicationId = "com.example.nadi_pariksh"
-        minSdk = flutter.minSdkVersion
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
     }
 
     buildTypes {
@@ -36,4 +39,16 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Firebase BoM ensures all Firebase dependencies use compatible versions
+    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+
+    // Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    
+    // Google Sign-In dependency
+    implementation("com.google.android.gms:play-services-auth:21.1.1")
 }

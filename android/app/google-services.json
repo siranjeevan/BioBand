@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "52957570887",
+    "project_id": "bioband01",
+    "storage_bucket": "bioband01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52957570887:android:96484fa233fc44f5fd8e62",
+        "android_client_info": {
+          "package_name": "com.example.nadi_pariksh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATixYE0s76je-2YLxSk1kkCYBPUmMFOI8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

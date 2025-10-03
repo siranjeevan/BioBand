@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
 import '../models/device_state.dart';
+import '../services/google_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,17 +16,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isDarkMode = false;
   bool _isEditing = false;
   
-  final Map<String, String> _userInfo = {
-    'name': 'John Doe',
-    'email': 'john.doe@email.com',
-    'age': '28',
-    'gender': 'Male',
-    'weight': '75 kg',
-    'height': '175 cm',
-    'bloodType': 'O+',
-    'emergencyContact': '+1 234 567 8900',
-  };
-  
+  late Map<String, String> _userInfo;
   late TextEditingController _nameController;
   late TextEditingController _ageController;
   late TextEditingController _weightController;
@@ -34,6 +26,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeUserInfo();
+    _setupControllers();
+  }
+  
+  void _initializeUserInfo() {
+    final user = FirebaseAuth.instance.currentUser;
+    _userInfo = {
+      'name': user?.displayName ?? 'User',
+      'email': user?.email ?? 'user@email.com',
+      'age': '28',
+      'gender': 'Male',
+      'weight': '75 kg',
+      'height': '175 cm',
+      'bloodType': 'O+',
+      'emergencyContact': '+1 234 567 8900',
+    };
+  }
+  
+  void _setupControllers() {
     _nameController = TextEditingController(text: _userInfo['name']);
     _ageController = TextEditingController(text: _userInfo['age']);
     _weightController = TextEditingController(text: _userInfo['weight']?.replaceAll(' kg', ''));
@@ -852,9 +863,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/login');
+              await GoogleAuthService().signOut();
+              if (mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Logout', style: TextStyle(color: AppColors.textPrimary)),

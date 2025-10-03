@@ -114,11 +114,11 @@ class DashboardScreenState extends State<DashboardScreen>
               top: 0,
               left: 0,
               right: 0,
-              bottom: 80, // Leave space for bottom navigation
+              bottom: 100, // Leave more space for bottom navigation
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.3),
+                  color: Colors.black.withValues(alpha: 0.2),
                 ),
               ),
             ),

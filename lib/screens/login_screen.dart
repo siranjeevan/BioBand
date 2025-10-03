@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
+import '../services/google_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,13 +42,27 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     super.dispose();
   }
 
-  void _login() async {
-    if (!_formKey.currentState!.validate()) return;
-    
+  void _signInWithGoogle() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/device-connect');
+    
+    try {
+      final userCredential = await GoogleAuthService().signInWithGoogle();
+      if (userCredential != null && mounted) {
+        Navigator.pushReplacementNamed(context, '/device-connect');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign in failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -192,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
             width: double.infinity,
             height: 56,
             child: FilledButton(
-              onPressed: _isLoading ? null : _login,
+              onPressed: _isLoading ? null : _signInWithGoogle,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.textSecondary,
                 shape: RoundedRectangleBorder(
@@ -208,13 +223,20 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                         color: AppColors.textSecondary,
                       ),
                     )
-                  : const Text(
-                      'Sign In',
-                      style: TextStyle(
-                        color:AppColors.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.login, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Sign In with Google',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
             ),
           ),
