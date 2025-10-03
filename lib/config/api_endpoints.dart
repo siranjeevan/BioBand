@@ -10,7 +10,8 @@ class ApiEndpoints {
   // Health metrics endpoints
   static const String healthMetrics = '/health-metrics/';
   static const String addHealthMetrics = '/health-metrics/';
-  static String deviceHealthMetrics(String deviceId) => '/health-metrics/device/$deviceId';
+  static String deviceHealthMetrics(String deviceId) => '/health-metrics//$deviceId';
+  static String latestDeviceHealthMetrics(String deviceId) => '/health-metrics/$deviceId/latest';
   
   // System endpoints
   static const String health = '/health';

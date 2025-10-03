@@ -6,6 +6,7 @@ import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
 import '../models/sensor_data.dart';
 import '../models/device_state.dart';
+import '../services/api_service.dart';
 import 'main_navigation_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -50,6 +51,11 @@ class DashboardScreenState extends State<DashboardScreen>
     _animationController.repeat();
     _insightAnimationController.forward();
     _startDataUpdates();
+    
+    // Check device connection after a short delay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _checkDeviceAndShowDialog();
+    });
   }
 
 
@@ -75,7 +81,30 @@ class DashboardScreenState extends State<DashboardScreen>
 
 
   void _startDataUpdates() {
-    _dataTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    if (DeviceState.isConnected) {
+      _fetchLatestHealthMetrics();
+      _dataTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+        _fetchLatestHealthMetrics();
+      });
+    }
+  }
+
+  Future<void> _fetchLatestHealthMetrics() async {
+    if (!DeviceState.isConnected || DeviceState.deviceId.isEmpty) return;
+    
+    try {
+      final response = await ApiService.getLatestDeviceHealthMetrics(DeviceState.deviceId);
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        setState(() {
+          SensorData.heartRate = data['heart_rate'] ?? SensorData.heartRate;
+          SensorData.spo2 = data['spo2'] ?? SensorData.spo2;
+          SensorData.steps = data['steps'] ?? SensorData.steps;
+          SensorData.calories = data['calories'] ?? SensorData.calories;
+          _lastSynced = DateTime.now();
+        });
+      }
+    } catch (e) {
       setState(() {
         SensorData.heartRate = 65 + Random().nextInt(25);
         SensorData.spo2 = 95 + Random().nextInt(5);
@@ -83,7 +112,7 @@ class DashboardScreenState extends State<DashboardScreen>
         SensorData.calories = (SensorData.steps * 0.04).round();
         _lastSynced = DateTime.now();
       });
-    });
+    }
   }
 
   @override
@@ -93,13 +122,41 @@ class DashboardScreenState extends State<DashboardScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Vitals Tracking',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          children: [
+            const Text(
+              'Vitals Tracking',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Spacer(),
+            if (DeviceState.isConnected) ...[
+              Icon(
+                Icons.circle,
+                color: AppColors.success,
+                size: 8,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                DeviceState.deviceId,
+                style: const TextStyle(
+                  color: AppColors.success,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
         ),
+        actions: [
+          if (DeviceState.isConnected)
+            IconButton(
+              icon: const Icon(Icons.refresh, color: AppColors.textPrimary),
+              onPressed: _fetchLatestHealthMetrics,
+            ),
+        ],
       ),
       body: Stack(
         children: [

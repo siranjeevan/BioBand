@@ -43,4 +43,6 @@ class ApiService {
       post(ApiEndpoints.addHealthMetrics, healthData);
   static Future<Map<String, dynamic>> getDeviceHealthMetrics(String deviceId) => 
       get(ApiEndpoints.deviceHealthMetrics(deviceId));
+  static Future<Map<String, dynamic>> getLatestDeviceHealthMetrics(String deviceId) => 
+      get(ApiEndpoints.latestDeviceHealthMetrics(deviceId));
 }

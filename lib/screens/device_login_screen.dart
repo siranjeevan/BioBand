@@ -50,7 +50,7 @@ class _DeviceLoginScreenState extends State<DeviceLoginScreen> {
         
         if (deviceExists) {
           final device = devices.firstWhere((device) => device['device_id'] == deviceId);
-          DeviceState.connect(device['model']);
+          DeviceState.connect(device['model'], deviceId);
           Navigator.pushReplacementNamed(context, '/main');
         } else {
           setState(() {

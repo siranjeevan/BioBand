@@ -57,7 +57,7 @@ class _DeviceConnectScreenState extends State<DeviceConnectScreen> with TickerPr
       _connectedDevice = device.name;
     });
     
-    DeviceState.connect(device.name);
+    DeviceState.connect(device.name, device.id);
     
     Timer(const Duration(seconds: 1), () {
       Navigator.pushReplacementNamed(context, '/main');
