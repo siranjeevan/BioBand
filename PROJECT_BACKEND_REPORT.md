@@ -1,103 +1,208 @@
-# Bio Band Health Monitoring - Backend Development Report
+# Bio Band Health Monitoring API Documentation
 
-## 📋 Project Overview
-**Project**: Bio Band Health Monitoring System  
-**Backend Technology**: FastAPI + Turso Database  
-**Deployment**: Vercel (Serverless)  
-**Database**: Turso (LibSQL - SQLite-compatible)  
-**API URL**: https://test-1fwwt93bt-praveens-projects-79540d8d.vercel.app
+**Base URL:** `https://test-cu0mkzf55-praveens-projects-79540d8d.vercel.app`
+
+**Database:** Turso (LibSQL) - Real-time edge database
 
 ---
 
-## 🏗️ Architecture Overview
+## 📋 API Endpoints Overview
 
+| Method | Endpoint | Description | Status |
+|--------|----------|-------------|---------|
+| GET | `/` | API status and documentation | ✅ Live |
+| GET | `/users/` | Get all users | ✅ Live |
+| POST | `/users/` | Create new user | ✅ Live |
+| GET | `/devices/` | Get all devices | ✅ Live |
+| POST | `/devices/` | Register new device | ✅ Live |
+| GET | `/health-metrics/` | Get all health data | ✅ Live |
+| POST | `/health-metrics/` | Add health data | ✅ Live |
+| GET | `/health-metrics/device/{device_id}` | Get device-specific health data | ✅ Live |
+| GET | `/health` | Health check | ✅ Live |
+
+---
+
+## 🔍 Detailed API Reference
+
+### 1. API Status
+```http
+GET /
 ```
-Hardware Band → API Endpoints → Turso Database → Frontend/Mobile App
-     ↓              ↓              ↓                    ↓
-  JSON Data    FastAPI Server   SQLite Tables    REST API Calls
+
+**Response:**
+```json
+{
+  "message": "Bio Band Health Monitoring API",
+  "status": "success",
+  "version": "3.0.0",
+  "database_url": "libsql://bioband-praveencoder2007.aws-ap-south-1.turso.io",
+  "endpoints": {
+    "GET /users/": "Get all users from Turso",
+    "GET /devices/": "Get all devices from Turso",
+    "GET /health-metrics/": "Get all health data from Turso",
+    "POST /users/": "Create user",
+    "POST /devices/": "Register device",
+    "POST /health-metrics/": "Add health data"
+  }
+}
 ```
 
 ---
 
-## 🗄️ Database Design
+## 👥 User Management
 
-### **3-Table Normalized Structure**
-
-#### 1. **users** Table
-```sql
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    full_name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+### 2. Get All Users
+```http
+GET /users/
 ```
-**Purpose**: Store user account information
 
-#### 2. **devices** Table
-```sql
-CREATE TABLE devices (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    device_id TEXT UNIQUE NOT NULL,
-    user_id INTEGER NOT NULL,
-    model TEXT DEFAULT 'BioBand Pro',
-    status TEXT DEFAULT 'active',
-    registered_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+**Response:**
+```json
+{
+  "success": true,
+  "users": [
+    {
+      "id": "1",
+      "full_name": "John Doe",
+      "email": "john.doe@example.com",
+      "created_at": "2025-10-02 13:50:29"
+    }
+  ],
+  "count": 1,
+  "source": "Real Turso Database via HTTP"
+}
 ```
-**Purpose**: Track hardware bands assigned to users
 
-#### 3. **health_metrics** Table
-```sql
-CREATE TABLE health_metrics (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    device_id TEXT NOT NULL,
-    user_id INTEGER NOT NULL,
-    heart_rate INTEGER,
-    spo2 INTEGER,
-    temperature REAL,
-    steps INTEGER,
-    calories INTEGER,
-    activity TEXT,
-    timestamp DATETIME NOT NULL
-);
+### 3. Create User
+```http
+POST /users/
+Content-Type: application/json
 ```
-**Purpose**: Store health data from hardware bands
 
-### **Database Relationships**
-- users (1) → devices (N) - One user can have multiple devices
-- devices (1) → health_metrics (N) - One device generates multiple health records
-- users (1) → health_metrics (N) - One user has multiple health records
+**Request Body:**
+```json
+{
+  "full_name": "John Doe",
+  "email": "john.doe@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User created successfully in Turso",
+  "user": {
+    "id": "8",
+    "full_name": "John Doe",
+    "email": "john.doe@example.com",
+    "created_at": "2025-10-02 15:30:00"
+  }
+}
+```
 
 ---
 
-## 🚀 API Endpoints
+## 📱 Device Management
 
-### **Data Retrieval (GET)**
-| Endpoint | Purpose | Response |
-|----------|---------|----------|
-| `GET /` | API status and documentation | API info + endpoints list |
-| `GET /users/` | Get all users from database | List of all registered users |
-| `GET /devices/` | Get all devices from database | List of all registered devices |
-| `GET /health-metrics/` | Get all health data | Complete health metrics dataset |
-| `GET /health-metrics/device/{device_id}` | Get specific device data | Health data for one device |
-| `GET /health` | System health check | API status + timestamp |
+### 4. Get All Devices
+```http
+GET /devices/
+```
 
-### **Data Creation (POST)**
-| Endpoint | Purpose | Input Format |
-|----------|---------|--------------|
-| `POST /users/` | Create new user | `{"full_name": "string", "email": "string"}` |
-| `POST /health-metrics/` | Add health data | Hardware band JSON format |
+**Response:**
+```json
+{
+  "success": true,
+  "devices": [
+    {
+      "id": "1",
+      "device_id": "BAND001",
+      "user_id": "1",
+      "model": "BioBand Pro",
+      "status": "active",
+      "registered_at": "2025-10-02 13:50:29"
+    }
+  ],
+  "count": 1,
+  "source": "Real Turso Database via HTTP"
+}
+```
+
+### 5. Register Device
+```http
+POST /devices/
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "device_id": "BAND003",
+  "user_id": 1,
+  "model": "BioBand Pro"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Device registered successfully in Turso",
+  "device": {
+    "id": "3",
+    "device_id": "BAND003",
+    "user_id": "1",
+    "model": "BioBand Pro",
+    "status": "active",
+    "registered_at": "2025-10-02 15:30:00"
+  }
+}
+```
 
 ---
 
-## 📱 Hardware Integration
+## 📊 Health Data Management
 
-### **Expected JSON Input from Hardware Band**
+### 6. Get All Health Metrics
+```http
+GET /health-metrics/
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "health_metrics": [
+    {
+      "id": "1",
+      "device_id": "BAND001",
+      "user_id": "1",
+      "heart_rate": "78",
+      "spo2": "97",
+      "temperature": "36.5",
+      "steps": "1250",
+      "calories": "55",
+      "activity": "Walking",
+      "timestamp": "2025-10-02T10:30:00Z"
+    }
+  ],
+  "count": 1,
+  "source": "Real Turso Database via HTTP"
+}
+```
+
+### 7. Add Health Data
+```http
+POST /health-metrics/
+Content-Type: application/json
+```
+
+**Request Body:**
 ```json
 {
   "device_id": "BAND001",
-  "timestamp": "2025-09-16T10:30:00Z",
+  "timestamp": "2025-10-02T10:30:00Z",
   "heart_rate": 78,
   "spo2": 97,
   "temperature": 36.5,
@@ -107,177 +212,210 @@ CREATE TABLE health_metrics (
 }
 ```
 
-### **API Response Format**
+**Response:**
 ```json
 {
   "success": true,
-  "message": "Health metric recorded successfully",
+  "message": "Health metric recorded successfully in Turso",
   "data": {
-    "id": 1,
+    "id": "1",
     "device_id": "BAND001",
-    "timestamp": "2025-09-16T10:30:00Z",
+    "user_id": "1",
+    "heart_rate": "78",
+    "spo2": "97",
+    "temperature": "36.5",
+    "steps": "1250",
+    "calories": "55",
+    "activity": "Walking",
+    "timestamp": "2025-10-02T10:30:00Z"
+  }
+}
+```
+
+### 8. Get Device-Specific Health Data
+```http
+GET /health-metrics/device/{device_id}
+```
+
+**Example:**
+```http
+GET /health-metrics/device/BAND001
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "device_id": "BAND001",
+  "health_metrics": [
+    {
+      "id": "1",
+      "device_id": "BAND001",
+      "user_id": "1",
+      "heart_rate": "78",
+      "spo2": "97",
+      "temperature": "36.5",
+      "steps": "1250",
+      "calories": "55",
+      "activity": "Walking",
+      "timestamp": "2025-10-02T10:30:00Z"
+    }
+  ],
+  "count": 1,
+  "source": "Real Turso Database via HTTP"
+}
+```
+
+---
+
+## 🏥 System Health
+
+### 9. Health Check
+```http
+GET /health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-10-02T15:30:00.123456",
+  "database": "Normalized Schema"
+}
+```
+
+---
+
+## 🔧 Testing with cURL
+
+### Create User
+```bash
+curl -X POST https://test-cu0mkzf55-praveens-projects-79540d8d.vercel.app/users/ \
+  -H "Content-Type: application/json" \
+  -d '{"full_name": "Test User", "email": "test@example.com"}'
+```
+
+### Get Users
+```bash
+curl https://test-cu0mkzf55-praveens-projects-79540d8d.vercel.app/users/
+```
+
+### Register Device
+```bash
+curl -X POST https://test-cu0mkzf55-praveens-projects-79540d8d.vercel.app/devices/ \
+  -H "Content-Type: application/json" \
+  -d '{"device_id": "BAND003", "user_id": 1, "model": "BioBand Pro"}'
+```
+
+### Add Health Data
+```bash
+curl -X POST https://test-cu0mkzf55-praveens-projects-79540d8d.vercel.app/health-metrics/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "BAND001",
+    "timestamp": "2025-10-02T10:30:00Z",
     "heart_rate": 78,
     "spo2": 97,
     "temperature": 36.5,
     "steps": 1250,
     "calories": 55,
     "activity": "Walking"
-  }
+  }'
+```
+
+---
+
+## 📋 Data Models
+
+### User Model
+```json
+{
+  "id": "integer (auto-increment)",
+  "full_name": "string (required)",
+  "email": "string (required, unique)",
+  "created_at": "datetime (auto-generated)"
+}
+```
+
+### Device Model
+```json
+{
+  "id": "integer (auto-increment)",
+  "device_id": "string (required, unique)",
+  "user_id": "integer (required)",
+  "model": "string (default: 'BioBand Pro')",
+  "status": "string (default: 'active')",
+  "registered_at": "datetime (auto-generated)"
+}
+```
+
+### Health Metric Model
+```json
+{
+  "id": "integer (auto-increment)",
+  "device_id": "string (required)",
+  "user_id": "integer (required)",
+  "heart_rate": "integer (optional)",
+  "spo2": "integer (optional)",
+  "temperature": "float (optional)",
+  "steps": "integer (optional)",
+  "calories": "integer (optional)",
+  "activity": "string (optional, default: 'Walking')",
+  "timestamp": "datetime (required)"
 }
 ```
 
 ---
 
-## 🛠️ Technology Stack
+## 🚨 Error Responses
 
-### **Backend Framework**
-- **FastAPI**: Modern Python web framework
-  - Automatic API documentation (`/docs`)
-  - Built-in data validation
-  - High performance (async support)
-  - Type hints support
-
-### **Database**
-- **Turso**: Edge database (LibSQL)
-  - SQLite-compatible
-  - Global distribution
-  - Serverless scaling
-  - Low latency
-
-### **Deployment**
-- **Vercel**: Serverless deployment platform
-  - Automatic HTTPS
-  - Global CDN
-  - Zero-config deployment
-  - Automatic scaling
-
-### **Data Validation**
-- **Pydantic**: Data validation using Python type hints
-  - Automatic JSON parsing
-  - Input validation
-  - Error handling
-
----
-
-## 🔧 Development Setup
-
-### **Project Structure**
-```
-test/
-├── main.py                 # FastAPI application
-├── minimal_db.sql          # Database schema
-├── requirements.txt        # Python dependencies
-├── vercel.json            # Deployment config
-└── PROJECT_BACKEND_REPORT.md
+### Success Response
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": { ... }
+}
 ```
 
-### **Dependencies**
-```txt
-fastapi
-pydantic
-uvicorn
+### Error Response
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "error": "Detailed error message"
+}
 ```
 
 ---
 
-## 📊 Current Status
-
-### ✅ **Completed Features**
-1. **Database Design**: 3-table normalized structure
-2. **API Endpoints**: 6 functional endpoints
-3. **Data Models**: Pydantic validation models
-4. **Deployment**: Live on Vercel
-5. **CORS Support**: Frontend integration ready
-6. **Documentation**: Auto-generated API docs
-
-### 🔄 **In Progress**
-1. **Database Integration**: Currently using simulated data
-2. **Authentication**: User login/registration
-3. **Real-time Data**: WebSocket support for live updates
-
-### 📋 **Next Steps**
-1. Connect actual Turso database queries
-2. Implement user authentication
-3. Add data analytics endpoints
-4. Set up automated testing
-5. Add error logging and monitoring
+## 🔐 Authentication
+Currently, the API is open (no authentication required). For production use, implement:
+- JWT tokens
+- API keys
+- Rate limiting
 
 ---
 
-## 🧪 Testing
-
-### **API Testing with Postman**
-1. **Get Users**: `GET https://test-1fwwt93bt-praveens-projects-79540d8d.vercel.app/users/`
-2. **Get Devices**: `GET https://test-1fwwt93bt-praveens-projects-79540d8d.vercel.app/devices/`
-3. **Get Health Data**: `GET https://test-1fwwt93bt-praveens-projects-79540d8d.vercel.app/health-metrics/`
-
-### **Sample Test Data**
-- 2 Users: John Doe, Jane Smith
-- 2 Devices: BAND001, BAND002
-- 2 Health Records: Walking and Running activities
+## 📈 Database Status
+- **Database**: Turso (LibSQL)
+- **Connection**: Real-time HTTP API
+- **Current Records**: 
+  - Users: 5
+  - Devices: 2
+  - Health Metrics: 0
 
 ---
 
-## 🔐 Security Features
-
-1. **CORS Configuration**: Cross-origin requests enabled
-2. **Input Validation**: Pydantic models validate all inputs
-3. **SQL Injection Prevention**: Parameterized queries
-4. **HTTPS**: Automatic SSL via Vercel
-5. **Rate Limiting**: Built-in Vercel protection
-
----
-
-## 📈 Performance Metrics
-
-- **Response Time**: < 200ms average
-- **Uptime**: 99.9% (Vercel SLA)
-- **Scalability**: Auto-scaling serverless functions
-- **Database**: Edge-optimized with global replication
+## 🛠️ Technical Details
+- **Framework**: FastAPI (Python)
+- **Database**: Turso (Edge SQLite)
+- **Deployment**: Vercel (Serverless)
+- **CORS**: Enabled for all origins
+- **Response Format**: JSON
+- **Status Codes**: Standard HTTP codes
 
 ---
 
-## 🎯 Business Value
-
-1. **Real-time Health Monitoring**: Continuous data collection from hardware
-2. **Scalable Architecture**: Handles multiple users and devices
-3. **API-First Design**: Easy integration with mobile/web frontends
-4. **Data Analytics Ready**: Structured data for insights and reporting
-5. **Cost-Effective**: Serverless deployment with pay-per-use pricing
-
----
-
-## 📞 Integration Points
-
-### **For Frontend Team**
-- Base URL: `https://test-1fwwt93bt-praveens-projects-79540d8d.vercel.app`
-- API Documentation: `/docs` endpoint
-- All endpoints return JSON with consistent structure
-- CORS enabled for web applications
-
-### **For Hardware Team**
-- POST endpoint: `/health-metrics/`
-- Expected JSON format documented above
-- Real-time data ingestion capability
-- Device registration via `/devices/` endpoint
-
-### **For Mobile Team**
-- RESTful API design
-- JSON responses
-- HTTP status codes for error handling
-- Pagination support (future enhancement)
-
----
-
-## 📋 Summary for Project Update
-
-**What We Built**: Complete backend API for Bio Band health monitoring system with database, endpoints, and cloud deployment.
-
-**Key Achievements**: 
-- ✅ 6 working API endpoints
-- ✅ Normalized database design
-- ✅ Live deployment on Vercel
-- ✅ Hardware integration ready
-- ✅ Frontend integration ready
-
-**Ready for Integration**: Backend is production-ready for both hardware data ingestion and frontend/mobile app consumption.
+## 📞 Support
+For issues or questions, check the API status endpoint or review the error messages in responses.

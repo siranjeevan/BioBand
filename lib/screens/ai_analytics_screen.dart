@@ -23,8 +23,7 @@ class _AiAnalyticsScreenState extends State<AiAnalyticsScreen>
   late List<WatchLogo> _watchLogos;
   bool _isLoading = false;
   
-  static const String apiKey = 'AIzaSyBx4_h7kQdD_zGzIeQ9MctV45S-cwbBcXY';
-  static const String apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  static const String apiUrl = 'http://192.168.1.6:8000/chat';
 
   @override
   void initState() {
@@ -70,27 +69,18 @@ class _AiAnalyticsScreenState extends State<AiAnalyticsScreen>
 
     try {
       final response = await http.post(
-        Uri.parse('$apiUrl?key=$apiKey'),
+        Uri.parse(apiUrl),
         headers: {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'contents': [
-            {
-              'parts': [
-                {'text': 'You are a health AI assistant. Answer this health-related question: $userMessage'}
-              ]
-            }
-          ],
-          'generationConfig': {
-            'maxOutputTokens': 1000,
-          }
+          'message': userMessage
         }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        String aiResponse = data['candidates'][0]['content']['parts'][0]['text'];
+        String aiResponse = data['response'] ?? 'No response received';
         
         setState(() {
           _chatMessages.add({
