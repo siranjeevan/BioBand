@@ -93,23 +93,29 @@ class DashboardScreenState extends State<DashboardScreen>
     if (!DeviceState.isConnected || DeviceState.deviceId.isEmpty) return;
     
     try {
-      final response = await ApiService.getLatestDeviceHealthMetrics(DeviceState.deviceId);
-      if (response['success'] == true && response['data'] != null) {
-        final data = response['data'];
-        setState(() {
-          SensorData.heartRate = data['heart_rate'] ?? SensorData.heartRate;
-          SensorData.spo2 = data['spo2'] ?? SensorData.spo2;
-          SensorData.steps = data['steps'] ?? SensorData.steps;
-          SensorData.calories = data['calories'] ?? SensorData.calories;
-          _lastSynced = DateTime.now();
-        });
+      final response = await ApiService.getDeviceHealthMetrics(DeviceState.deviceId);
+      if (response['success'] == true && response['health_metrics'] != null) {
+        final List<dynamic> metrics = response['health_metrics'];
+        if (metrics.isNotEmpty) {
+          // Sort by ID to get the highest ID (most recent entry)
+          metrics.sort((a, b) => int.parse(b['id'].toString()).compareTo(int.parse(a['id'].toString())));
+          final latestData = metrics.first;
+          
+          setState(() {
+            SensorData.heartRate = int.tryParse(latestData['heart_rate']?.toString() ?? '0') ?? 0;
+            SensorData.spo2 = latestData['spo2'] != null ? int.tryParse(latestData['spo2'].toString()) ?? 0 : 0;
+            SensorData.steps = latestData['steps'] != null ? int.tryParse(latestData['steps'].toString()) ?? 0 : 0;
+            SensorData.calories = latestData['calories'] != null ? int.tryParse(latestData['calories'].toString()) ?? 0 : 0;
+            _lastSynced = DateTime.now();
+          });
+        }
       }
     } catch (e) {
       setState(() {
-        SensorData.heartRate = 65 + Random().nextInt(25);
-        SensorData.spo2 = 95 + Random().nextInt(5);
-        SensorData.steps += Random().nextInt(10);
-        SensorData.calories = (SensorData.steps * 0.04).round();
+        SensorData.heartRate = 0;
+        SensorData.spo2 = 0;
+        SensorData.steps = 0;
+        SensorData.calories = 0;
         _lastSynced = DateTime.now();
       });
     }

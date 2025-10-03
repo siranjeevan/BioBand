@@ -10,6 +10,7 @@ import 'screens/device_connect_screen.dart';
 import 'screens/device_login_screen.dart';
 import 'screens/dashboard_screen.dart' as dashboard;
 import 'screens/reports_screen.dart';
+import 'screens/health_report_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/ai_analytics_screen.dart';
 import 'screens/main_navigation_screen.dart';
@@ -214,6 +215,7 @@ class NadiParikshaApp extends StatelessWidget {
         '/main': (context) => const MainNavigationScreen(initialIndex: 0),
         '/dashboard': (context) => const MainNavigationScreen(initialIndex: 0),
         '/reports': (context) => const MainNavigationScreen(initialIndex: 2),
+        '/health-report': (context) => const HealthReportScreen(),
         '/profile': (context) => const MainNavigationScreen(initialIndex: 3),
         '/ai-analytics': (context) => const MainNavigationScreen(initialIndex: 1),
       },

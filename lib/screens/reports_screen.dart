@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
+import 'dart:ui' as ui;
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
-import '../models/sensor_data.dart';
+import '../models/device_state.dart';
+import '../services/api_service.dart';
+import 'package:intl/intl.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -15,6 +17,9 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
   late AnimationController _animationController;
   int _selectedFilter = 0; // 0: Day, 1: Week, 2: Month
   int _selectedMetric = 0; // 0: HR, 1: SpO2, 2: Steps, 3: Calories
+  bool _isLoading = false;
+  List<Map<String, dynamic>> _healthData = [];
+  DateTime _lastUpdated = DateTime.now();
 
   final List<String> _filters = ['Day', 'Week', 'Month'];
   final List<String> _metrics = ['Heart Rate', 'SpO₂', 'Steps', 'Calories'];
@@ -27,6 +32,7 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
       vsync: this,
     );
     _animationController.forward();
+    _fetchHealthData();
   }
 
   @override
@@ -51,6 +57,14 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh, color: AppColors.primary),
+            onPressed: _fetchHealthData,
+          ),
+          IconButton(
+            icon: const Icon(Icons.description, color: AppColors.primary),
+            onPressed: () => Navigator.pushNamed(context, '/health-report'),
+          ),
+          IconButton(
             icon: const Icon(Icons.file_download, color: AppColors.primary),
             onPressed: _exportReport,
           ),
@@ -59,26 +73,33 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
-          child: ScrollConfiguration(
-  behavior: const ScrollBehavior().copyWith(overscroll: false),
-  child: SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      children: [
-        _buildFilterTabs(),
-        const SizedBox(height: 24),
-        _buildMetricSelector(),
-        const SizedBox(height: 24),
-        _buildChart(),
-        const SizedBox(height: 24),
-        _buildSummaryCards(),
-        const SizedBox(height: 24),
-        _buildTrendAnalysis(),
-      ],
-    ),
-  ),
-)
-
+          child: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
+              : _healthData.isEmpty
+                  ? _buildNoDataMessage()
+                  : ScrollConfiguration(
+                      behavior: const ScrollBehavior().copyWith(overscroll: false),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            _buildLastUpdated(),
+                            const SizedBox(height: 16),
+                            _buildFilterTabs(),
+                            const SizedBox(height: 24),
+                            _buildMetricSelector(),
+                            const SizedBox(height: 24),
+                            _buildChart(),
+                            const SizedBox(height: 24),
+                            _buildSummaryCards(),
+                            const SizedBox(height: 24),
+                            _buildTrendAnalysis(),
+                          ],
+                        ),
+                      ),
+                    ),
         ),
       ),
     );
@@ -92,7 +113,11 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
           final isSelected = _selectedFilter == index;
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _selectedFilter = index),
+              onTap: () => setState(() {
+                _selectedFilter = index;
+                _animationController.reset();
+                _animationController.forward();
+              }),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -155,6 +180,8 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
   }
 
   Widget _buildChart() {
+    final filteredData = _getFilteredData();
+    
     return GlassContainer(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -181,19 +208,33 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
           const SizedBox(height: 20),
           SizedBox(
             height: 250,
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: const Size(double.infinity, 250),
-                  painter: DetailedChartPainter(
-                    _selectedMetric,
-                    _selectedFilter,
-                    _animationController.value,
+            child: filteredData.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No data available for selected period',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  )
+                : GestureDetector(
+                    onTapDown: (details) => _handleChartTap(details, filteredData),
+                    child: AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return CustomPaint(
+                          size: const Size(double.infinity, 250),
+                          painter: DetailedChartPainter(
+                            _selectedMetric,
+                            _selectedFilter,
+                            _animationController.value,
+                            filteredData,
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),
@@ -361,19 +402,235 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
     );
   }
 
-  Map<String, String> _getSummaryData() {
-    switch (_selectedMetric) {
-      case 0: // Heart Rate
-        return {'average': '72', 'highest': '89', 'lowest': '58'};
-      case 1: // SpO2
-        return {'average': '97', 'highest': '99', 'lowest': '95'};
-      case 2: // Steps
-        return {'average': '7.2K', 'highest': '12.5K', 'lowest': '3.1K'};
-      case 3: // Calories
-        return {'average': '288', 'highest': '450', 'lowest': '124'};
-      default:
-        return {'average': '0', 'highest': '0', 'lowest': '0'};
+  Future<void> _fetchHealthData() async {
+    if (!DeviceState.isConnected || DeviceState.deviceId.isEmpty) {
+      setState(() {
+        _healthData = [];
+        _isLoading = false;
+      });
+      return;
     }
+
+    setState(() => _isLoading = true);
+    
+    try {
+      final response = await ApiService.getDeviceHealthMetrics(DeviceState.deviceId);
+      
+      if (response.containsKey('health_metrics') && response['health_metrics'] != null) {
+        final dynamic metricsData = response['health_metrics'];
+        List<Map<String, dynamic>> allData = [];
+        
+        if (metricsData is List) {
+          allData = metricsData.cast<Map<String, dynamic>>();
+        } else if (metricsData is Map) {
+          allData = [metricsData.cast<String, dynamic>()];
+        }
+        
+        // Process and validate data
+        final List<Map<String, dynamic>> validData = [];
+        
+        for (var data in allData) {
+          // Validate required fields
+          if (_hasValidHealthData(data)) {
+            // Normalize timestamp
+            final normalizedData = Map<String, dynamic>.from(data);
+            final timestamp = data['timestamp']?.toString() ?? '';
+            
+            if (timestamp.isNotEmpty && timestamp != 'time') {
+              try {
+                DateTime.parse(timestamp);
+                normalizedData['timestamp'] = timestamp;
+              } catch (e) {
+                // Use current time for invalid timestamps
+                normalizedData['timestamp'] = DateTime.now().toIso8601String();
+              }
+            } else {
+              normalizedData['timestamp'] = DateTime.now().toIso8601String();
+            }
+            
+            validData.add(normalizedData);
+          }
+        }
+        
+        // Sort by timestamp (oldest first for chronological display)
+        validData.sort((a, b) {
+          try {
+            return DateTime.parse(a['timestamp']).compareTo(DateTime.parse(b['timestamp']));
+          } catch (e) {
+            return 0;
+          }
+        });
+        
+        setState(() {
+          _healthData = validData.take(20).toList(); // Show last 20 entries
+          _lastUpdated = DateTime.now();
+          _isLoading = false;
+        });
+        
+        // Restart animation for new data
+        _animationController.reset();
+        _animationController.forward();
+      } else {
+        setState(() {
+          _healthData = [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _healthData = [];
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to fetch health data: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+  
+  bool _hasValidHealthData(Map<String, dynamic> data) {
+    // Check timestamp validity first
+    final timestamp = data['timestamp']?.toString() ?? '';
+    if (timestamp.isEmpty || timestamp == 'time') {
+      return false;
+    }
+    
+    // Try to parse timestamp
+    try {
+      DateTime.parse(timestamp);
+    } catch (e) {
+      return false;
+    }
+    
+    // Check if at least one health metric has valid data
+    final heartRate = double.tryParse(data['heart_rate']?.toString() ?? '0') ?? 0;
+    final spo2 = double.tryParse(data['spo2']?.toString() ?? '0') ?? 0;
+    final steps = double.tryParse(data['steps']?.toString() ?? '0') ?? 0;
+    final calories = double.tryParse(data['calories']?.toString() ?? '0') ?? 0;
+    
+    return heartRate > 0 || spo2 > 0 || steps > 0 || calories > 0;
+  }
+
+  Widget _buildLastUpdated() {
+    return GlassContainer(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.access_time,
+            size: 16,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Last updated: ${DateFormat('MMM dd, yyyy HH:mm').format(_lastUpdated)}',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _getFilteredData() {
+    if (_healthData.isEmpty) return [];
+    
+    // Filter out invalid timestamps first
+    final validData = _healthData.where((data) {
+      final timestampStr = data['timestamp'] ?? '';
+      if (timestampStr.isEmpty || timestampStr == 'time') return false;
+      try {
+        DateTime.parse(timestampStr);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }).toList();
+    
+    if (validData.isEmpty) return [];
+    
+    // Sort by timestamp
+    validData.sort((a, b) {
+      final timeA = DateTime.parse(a['timestamp']);
+      final timeB = DateTime.parse(b['timestamp']);
+      return timeA.compareTo(timeB);
+    });
+    
+    // For API data with future dates, use relative filtering
+    final allTimestamps = validData.map((d) => DateTime.parse(d['timestamp'])).toList();
+    final latestTime = allTimestamps.last;
+    
+    DateTime filterStart;
+    switch (_selectedFilter) {
+      case 0: // Day - show last 24 hours of data
+        filterStart = latestTime.subtract(const Duration(hours: 24));
+        break;
+      case 1: // Week - show last 7 days of data
+        filterStart = latestTime.subtract(const Duration(days: 7));
+        break;
+      case 2: // Month - show last 30 days of data
+        filterStart = latestTime.subtract(const Duration(days: 30));
+        break;
+      default:
+        filterStart = latestTime.subtract(const Duration(days: 7));
+    }
+    
+    // Filter data based on selected period
+    final filteredData = validData.where((data) {
+      final dataTime = DateTime.parse(data['timestamp']);
+      return dataTime.isAfter(filterStart);
+    }).toList();
+    
+    return filteredData.isNotEmpty ? filteredData : validData.take(3).toList();
+  }
+
+  Map<String, String> _getSummaryData() {
+    final filteredData = _getFilteredData();
+    if (filteredData.isEmpty) {
+      return {'average': '0', 'highest': '0', 'lowest': '0'};
+    }
+
+    String fieldName;
+    switch (_selectedMetric) {
+      case 0: fieldName = 'heart_rate'; break;
+      case 1: fieldName = 'spo2'; break;
+      case 2: fieldName = 'steps'; break;
+      case 3: fieldName = 'calories'; break;
+      default: return {'average': '0', 'highest': '0', 'lowest': '0'};
+    }
+
+    final values = filteredData
+        .map((data) => double.tryParse(data[fieldName]?.toString() ?? '0') ?? 0)
+        .where((v) => v > 0)
+        .toList();
+
+    if (values.isEmpty) {
+      return {'average': '0', 'highest': '0', 'lowest': '0'};
+    }
+
+    final average = values.reduce((a, b) => a + b) / values.length;
+    final highest = values.reduce((a, b) => a > b ? a : b);
+    final lowest = values.reduce((a, b) => a < b ? a : b);
+
+    String formatValue(double value) {
+      if (_selectedMetric == 2 && value >= 1000) {
+        return '${(value / 1000).toStringAsFixed(1)}K';
+      }
+      return value.toInt().toString();
+    }
+
+    return {
+      'average': formatValue(average),
+      'highest': formatValue(highest),
+      'lowest': formatValue(lowest),
+    };
   }
 
   String _getUnit(int metricIndex) {
@@ -387,23 +644,207 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
   }
 
   String _getTrendDescription() {
-    return 'Improving trend with consistent readings';
+    final filteredData = _getFilteredData();
+    if (filteredData.isEmpty) return 'No data available';
+    if (filteredData.length < 2) return 'Insufficient data for analysis';
+    
+    String fieldName;
+    switch (_selectedMetric) {
+      case 0: fieldName = 'heart_rate'; break;
+      case 1: fieldName = 'spo2'; break;
+      case 2: fieldName = 'steps'; break;
+      case 3: fieldName = 'calories'; break;
+      default: return 'No trend data available';
+    }
+    
+    final recent = filteredData.take(3).map((d) => 
+        double.tryParse(d[fieldName]?.toString() ?? '0') ?? 0).where((v) => v > 0).toList();
+    final older = filteredData.skip(3).take(3).map((d) => 
+        double.tryParse(d[fieldName]?.toString() ?? '0') ?? 0).where((v) => v > 0).toList();
+    
+    if (recent.isEmpty || older.isEmpty) return 'Insufficient valid data';
+    
+    final recentAvg = recent.reduce((a, b) => a + b) / recent.length;
+    final olderAvg = older.reduce((a, b) => a + b) / older.length;
+    
+    final change = ((recentAvg - olderAvg) / olderAvg * 100).abs();
+    
+    if (change < 5) return 'Stable readings';
+    if (recentAvg > olderAvg) return 'Increasing trend';
+    return 'Decreasing trend';
   }
 
   IconData _getTrendIcon() {
-    return Icons.trending_up;
+    final filteredData = _getFilteredData();
+    if (filteredData.length < 2) return Icons.trending_flat;
+    
+    String fieldName;
+    switch (_selectedMetric) {
+      case 0: fieldName = 'heart_rate'; break;
+      case 1: fieldName = 'spo2'; break;
+      case 2: fieldName = 'steps'; break;
+      case 3: fieldName = 'calories'; break;
+      default: return Icons.trending_flat;
+    }
+    
+    final recent = filteredData.take(3).map((d) => 
+        double.tryParse(d[fieldName]?.toString() ?? '0') ?? 0).toList();
+    final older = filteredData.skip(3).take(3).map((d) => 
+        double.tryParse(d[fieldName]?.toString() ?? '0') ?? 0).toList();
+    
+    if (recent.isEmpty || older.isEmpty) return Icons.trending_flat;
+    
+    final recentAvg = recent.reduce((a, b) => a + b) / recent.length;
+    final olderAvg = older.reduce((a, b) => a + b) / older.length;
+    
+    if (recentAvg > olderAvg) return Icons.trending_up;
+    if (recentAvg < olderAvg) return Icons.trending_down;
+    return Icons.trending_flat;
   }
 
   Color _getTrendColor() {
-    return AppColors.success;
+    final icon = _getTrendIcon();
+    if (icon == Icons.trending_up) {
+      return _selectedMetric == 0 ? AppColors.warning : AppColors.success; // HR up = warning, others up = good
+    }
+    if (icon == Icons.trending_down) {
+      return _selectedMetric == 0 ? AppColors.success : AppColors.warning; // HR down = good, others down = warning
+    }
+    return AppColors.textSecondary;
   }
 
   int _getHealthScore() {
-    return 85;
+    final filteredData = _getFilteredData();
+    if (filteredData.isEmpty) return 0;
+    
+    int totalScore = 0;
+    int validMetrics = 0;
+    
+    // Heart rate score
+    final hrValues = filteredData
+        .map((d) => double.tryParse(d['heart_rate']?.toString() ?? '0') ?? 0)
+        .where((v) => v > 0).toList();
+    if (hrValues.isNotEmpty) {
+      final avgHR = hrValues.reduce((a, b) => a + b) / hrValues.length;
+      if (avgHR >= 60 && avgHR <= 100) totalScore += 25;
+      else if (avgHR >= 50 && avgHR <= 110) totalScore += 15;
+      else totalScore += 5;
+      validMetrics++;
+    }
+    
+    // SpO2 score
+    final spo2Values = filteredData
+        .map((d) => double.tryParse(d['spo2']?.toString() ?? '0') ?? 0)
+        .where((v) => v > 0).toList();
+    if (spo2Values.isNotEmpty) {
+      final avgSpO2 = spo2Values.reduce((a, b) => a + b) / spo2Values.length;
+      if (avgSpO2 >= 95) totalScore += 25;
+      else if (avgSpO2 >= 90) totalScore += 15;
+      else totalScore += 5;
+      validMetrics++;
+    }
+    
+    return validMetrics > 0 ? (totalScore / validMetrics).round() : 0;
   }
 
   String _getRecommendation() {
-    return 'Maintain current activity levels for optimal health';
+    final filteredData = _getFilteredData();
+    if (filteredData.isEmpty) return 'No data available for recommendations';
+    
+    final score = _getHealthScore();
+    if (score == 0) return 'Insufficient data for recommendations';
+    
+    if (score >= 20) return 'Good health metrics detected';
+    if (score >= 15) return 'Consider monitoring more regularly';
+    return 'Consult healthcare provider if needed';
+  }
+
+  void _handleChartTap(TapDownDetails details, List<Map<String, dynamic>> data) {
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final localPosition = details.localPosition;
+    
+    // Calculate chart area (accounting for padding and margins)
+    const chartPadding = 40.0;
+    const chartHeight = 250.0;
+    const containerPadding = 20.0;
+    
+    // Adjust for container padding and chart positioning
+    final chartX = localPosition.dx - containerPadding - chartPadding;
+    final chartWidth = renderBox.size.width - (containerPadding * 2) - (chartPadding * 2);
+    
+    if (chartX < 0 || chartX > chartWidth || data.isEmpty) return;
+    
+    // Find closest data point
+    final pointIndex = data.length == 1 
+        ? 0 
+        : ((chartX / chartWidth) * (data.length - 1)).round().clamp(0, data.length - 1);
+    
+    final selectedData = data[pointIndex];
+    _showDataPointDialog(selectedData);
+  }
+  
+  void _showDataPointDialog(Map<String, dynamic> data) {
+    String fieldName;
+    String unit;
+    switch (_selectedMetric) {
+      case 0: fieldName = 'heart_rate'; unit = 'BPM'; break;
+      case 1: fieldName = 'spo2'; unit = '%'; break;
+      case 2: fieldName = 'steps'; unit = 'steps'; break;
+      case 3: fieldName = 'calories'; unit = 'kcal'; break;
+      default: return;
+    }
+    
+    final value = data[fieldName]?.toString() ?? '0';
+    final timestamp = data['timestamp']?.toString() ?? '';
+    final time = timestamp.isNotEmpty && timestamp != 'time' 
+        ? DateFormat('HH:mm - MMM dd').format(DateTime.parse(timestamp))
+        : 'Unknown time';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          _metrics[_selectedMetric],
+          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Value:', style: TextStyle(color: AppColors.textSecondary)),
+                Text('$value $unit', style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Time:', style: TextStyle(color: AppColors.textSecondary)),
+                Text(time, style: const TextStyle(color: AppColors.textPrimary)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Activity:', style: TextStyle(color: AppColors.textSecondary)),
+                Text(data['activity']?.toString() ?? 'N/A', style: const TextStyle(color: AppColors.textPrimary)),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close', style: TextStyle(color: AppColors.primary)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _exportReport() {
@@ -414,14 +855,59 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
       ),
     );
   }
+
+  Widget _buildNoDataMessage() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: GlassContainer(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.cloud_off,
+                size: 64,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'API Connection Failed',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Unable to fetch health data.\nPlease check your connection and try again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _fetchHealthData,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class DetailedChartPainter extends CustomPainter {
   final int metricIndex;
   final int filterIndex;
   final double animationValue;
+  final List<Map<String, dynamic>> healthData;
 
-  DetailedChartPainter(this.metricIndex, this.filterIndex, this.animationValue);
+  DetailedChartPainter(this.metricIndex, this.filterIndex, this.animationValue, this.healthData);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -464,13 +950,17 @@ class DetailedChartPainter extends CustomPainter {
 
     // Vertical grid lines
     final data = _generateData();
-    for (int i = 0; i < data.length; i++) {
-      final x = 40 + (i / (data.length - 1)) * (size.width - 60);
-      canvas.drawLine(
-        Offset(x, 20),
-        Offset(x, size.height - 20),
-        gridPaint,
-      );
+    if (data.isNotEmpty) {
+      for (int i = 0; i < data.length; i++) {
+        final x = data.length == 1 
+            ? size.width / 2 
+            : 40 + (i / (data.length - 1)) * (size.width - 60);
+        canvas.drawLine(
+          Offset(x, 20),
+          Offset(x, size.height - 20),
+          gridPaint,
+        );
+      }
     }
   }
 
@@ -496,18 +986,31 @@ class DetailedChartPainter extends CustomPainter {
 
   void _drawAreaFill(Canvas canvas, Size size, Color color) {
     final data = _generateData();
+    if (data.isEmpty) return;
+    
     final path = Path();
     
-    path.moveTo(40, size.height - 20);
-    
-    for (int i = 0; i < data.length; i++) {
-      final x = 40 + (i / (data.length - 1)) * (size.width - 60);
-      final y = size.height - 20 - (data[i] * (size.height - 40) * animationValue);
-      path.lineTo(x, y);
+    if (data.length == 1) {
+      // Single point - create rectangle area
+      final y = size.height - 20 - (data[0] * (size.height - 40) * animationValue);
+      path.moveTo(40, size.height - 20);
+      path.lineTo(40, y);
+      path.lineTo(size.width - 20, y);
+      path.lineTo(size.width - 20, size.height - 20);
+      path.close();
+    } else {
+      // Multiple points - create area under curve
+      path.moveTo(40, size.height - 20);
+      
+      for (int i = 0; i < data.length; i++) {
+        final x = 40 + (i / (data.length - 1)) * (size.width - 60);
+        final y = size.height - 20 - (data[i] * (size.height - 40) * animationValue);
+        path.lineTo(x, y);
+      }
+      
+      path.lineTo(size.width - 20, size.height - 20);
+      path.close();
     }
-    
-    path.lineTo(size.width - 20, size.height - 20);
-    path.close();
 
     final fillPaint = Paint()
       ..shader = LinearGradient(
@@ -524,7 +1027,7 @@ class DetailedChartPainter extends CustomPainter {
 
   void _drawMainLine(Canvas canvas, Size size, Color color) {
     final data = _generateData();
-    final path = Path();
+    if (data.isEmpty) return;
     
     final linePaint = Paint()
       ..color = color
@@ -533,42 +1036,52 @@ class DetailedChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    for (int i = 0; i < data.length; i++) {
-      final x = 40 + (i / (data.length - 1)) * (size.width - 60);
-      final y = size.height - 20 - (data[i] * (size.height - 40) * animationValue);
-      
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        // Create smooth curves
-        final prevX = 40 + ((i - 1) / (data.length - 1)) * (size.width - 60);
-        final prevY = size.height - 20 - (data[i - 1] * (size.height - 40) * animationValue);
-        final cpX = (prevX + x) / 2;
+    if (data.length == 1) {
+      // Single point - draw horizontal line
+      final x = size.width / 2;
+      final y = size.height - 20 - (data[0] * (size.height - 40) * animationValue);
+      canvas.drawLine(
+        Offset(40, y),
+        Offset(size.width - 20, y),
+        linePaint,
+      );
+    } else {
+      // Multiple points - draw connected line
+      final path = Path();
+      for (int i = 0; i < data.length; i++) {
+        final x = 40 + (i / (data.length - 1)) * (size.width - 60);
+        final y = size.height - 20 - (data[i] * (size.height - 40) * animationValue);
         
-        path.quadraticBezierTo(cpX, prevY, x, y);
+        if (i == 0) {
+          path.moveTo(x, y);
+        } else {
+          path.lineTo(x, y);
+        }
       }
+      canvas.drawPath(path, linePaint);
     }
-
-    canvas.drawPath(path, linePaint);
   }
 
   void _drawDataPoints(Canvas canvas, Size size, Color color) {
     final data = _generateData();
+    if (data.isEmpty) return;
     
     final pointPaint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
       
     final ringPaint = Paint()
-      ..color = AppColors.textPrimary
+      ..color = Colors.white
       ..style = PaintingStyle.fill;
 
     for (int i = 0; i < data.length; i++) {
-      final x = 40 + (i / (data.length - 1)) * (size.width - 60);
+      final x = data.length == 1 
+          ? size.width / 2 
+          : 40 + (i / (data.length - 1)) * (size.width - 60);
       final y = size.height - 20 - (data[i] * (size.height - 40) * animationValue);
       
       // Animated point size
-      final pointSize = 6 * animationValue;
+      final pointSize = 8 * animationValue;
       
       // Draw outer ring
       canvas.drawCircle(Offset(x, y), pointSize + 2, ringPaint);
@@ -579,7 +1092,7 @@ class DetailedChartPainter extends CustomPainter {
 
   void _drawLabels(Canvas canvas, Size size) {
     final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
+      textDirection: ui.TextDirection.ltr,
     );
 
     // Y-axis labels
@@ -617,19 +1130,42 @@ class DetailedChartPainter extends CustomPainter {
   }
 
   List<double> _generateData() {
-    // Generate realistic data based on metric type
+    if (healthData.isEmpty) return [];
+    
+    String fieldName;
     switch (metricIndex) {
-      case 0: // Heart Rate
-        return [0.6, 0.7, 0.65, 0.8, 0.75, 0.9, 0.85];
-      case 1: // SpO2
-        return [0.95, 0.97, 0.96, 0.98, 0.97, 0.99, 0.98];
-      case 2: // Steps
-        return [0.3, 0.5, 0.4, 0.7, 0.6, 0.9, 0.8];
-      case 3: // Calories
-        return [0.4, 0.6, 0.5, 0.8, 0.7, 0.9, 0.85];
-      default:
-        return [0.5, 0.6, 0.7, 0.8, 0.6, 0.9, 0.7];
+      case 0: fieldName = 'heart_rate'; break;
+      case 1: fieldName = 'spo2'; break;
+      case 2: fieldName = 'steps'; break;
+      case 3: fieldName = 'calories'; break;
+      default: return [];
     }
+    
+    // Use the already filtered healthData (passed from _getFilteredData)
+    final List<double> values = [];
+    for (var data in healthData) {
+      final value = double.tryParse(data[fieldName]?.toString() ?? '0') ?? 0;
+      if (value > 0) {
+        values.add(value);
+      }
+    }
+    
+    if (values.isEmpty) return [];
+    
+    // Use appropriate max values for normalization
+    double maxRange;
+    switch (metricIndex) {
+      case 0: maxRange = 120; break;
+      case 1: maxRange = 100; break;
+      case 2: maxRange = 15000; break;
+      case 3: maxRange = 500; break;
+      default: maxRange = 100;
+    }
+    
+    return values.map((v) {
+      final normalized = v / maxRange;
+      return normalized.clamp(0.05, 0.95);
+    }).toList();
   }
 
   int _getMaxValue() {
@@ -643,16 +1179,29 @@ class DetailedChartPainter extends CustomPainter {
   }
 
   List<String> _getTimeLabels() {
-    switch (filterIndex) {
-      case 0: // Day
-        return ['6AM', '9AM', '12PM', '3PM', '6PM', '9PM', '12AM'];
-      case 1: // Week
-        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      case 2: // Month
-        return ['W1', 'W2', 'W3', 'W4'];
-      default:
-        return ['1', '2', '3', '4', '5', '6', '7'];
+    if (healthData.isEmpty) {
+      switch (filterIndex) {
+        case 0: return ['No Data Today'];
+        case 1: return ['No Data This Week'];
+        case 2: return ['No Data This Month'];
+        default: return ['No Data'];
+      }
     }
+    
+    // Use the already filtered healthData
+    return healthData.map((data) {
+      final timestamp = DateTime.parse(data['timestamp']);
+      switch (filterIndex) {
+        case 0: // Day - show time (HH:mm)
+          return DateFormat('HH:mm').format(timestamp);
+        case 1: // Week - show day names (Mon, Tue, etc.)
+          return DateFormat('EEE').format(timestamp);
+        case 2: // Month - show month names (Jan, Feb, etc.)
+          return DateFormat('MMM').format(timestamp);
+        default:
+          return DateFormat('HH:mm').format(timestamp);
+      }
+    }).toList();
   }
 
   @override
