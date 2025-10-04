@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../design_system/app_colors.dart';
+import '../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,8 +27,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _pulseController.repeat(reverse: true);
     
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/onboarding');
+      _checkAutoLogin();
     });
+  }
+
+  Future<void> _checkAutoLogin() async {
+    final authService = AuthService();
+    final user = await authService.autoLogin();
+    
+    if (user != null) {
+      Navigator.pushReplacementNamed(context, '/device-connect');
+    } else {
+      Navigator.pushReplacementNamed(context, '/onboarding');
+    }
   }
 
   @override

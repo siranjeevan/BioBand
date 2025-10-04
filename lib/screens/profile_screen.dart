@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
 import '../models/device_state.dart';
-import '../services/google_auth.dart';
+import '../services/auth_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -865,7 +865,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              await GoogleAuthService().signOut();
+              await AuthService().signOut();
               if (mounted) {
                 Navigator.pushReplacementNamed(context, '/login');
               }

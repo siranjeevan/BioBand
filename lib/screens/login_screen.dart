@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design_system/app_colors.dart';
 import '../design_system/glass_container.dart';
-import '../services/google_auth.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,9 +11,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -46,8 +43,8 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     setState(() => _isLoading = true);
     
     try {
-      final userCredential = await GoogleAuthService().signInWithGoogle();
-      if (userCredential != null && mounted) {
+      final user = await AuthService().signInWithGoogle();
+      if (user != null && mounted) {
         Navigator.pushReplacementNamed(context, '/device-connect');
       }
     } catch (e) {
@@ -55,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Sign in failed: ${e.toString()}'),
-            backgroundColor: AppColors.error,
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -66,25 +63,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     }
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email is required';
-    }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-      return 'Enter a valid email';
-    }
-    return null;
-  }
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password is required';
-    }
-    if (value.length < 5) {
-      return 'Password must be at least 5 characters';
-    }
-    return null;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,34 +154,12 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   }
 
   Widget _buildLoginForm() {
-    return Form(
-      key: _formKey,
-      child: GlassContainer(
-        padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.08),
-        opacity: 0.05,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              validator: _validateEmail,
-              decoration: const InputDecoration(
-                labelText: 'Email Address',
-                prefixIcon: Icon(Icons.email_outlined, color: AppColors.textSecondary),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: true,
-              validator: _validatePassword,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                prefixIcon: Icon(Icons.lock_outline, color: AppColors.textSecondary),
-              ),
-            ),
-          const SizedBox(height: 32),
+    return GlassContainer(
+      padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.08),
+      opacity: 0.05,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -264,19 +221,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              'Forgot Password?',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          )
-          ],
-        ),
+        ],
       ),
     );
   }

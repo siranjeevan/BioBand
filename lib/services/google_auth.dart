@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
+import 'api_service.dart';
 
 class GoogleAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -25,11 +26,13 @@ class GoogleAuthService {
         return null; // Already signed in
       }
       
+      UserCredential? userCredential;
+      
       if (kIsWeb) {
         // Web implementation
         final GoogleAuthProvider googleProvider = GoogleAuthProvider();
         googleProvider.setCustomParameters({'prompt': 'select_account'});
-        return await _auth.signInWithPopup(googleProvider);
+        userCredential = await _auth.signInWithPopup(googleProvider);
       } else {
         // Mobile implementation
         final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
@@ -40,11 +43,29 @@ class GoogleAuthService {
           idToken: googleAuth.idToken,
         );
         
-        return await _auth.signInWithCredential(credential);
+        userCredential = await _auth.signInWithCredential(credential);
       }
+      
+      // Store user data to API
+      if (userCredential?.user != null) {
+        await _storeUserToApi(userCredential!.user!);
+      }
+      
+      return userCredential;
     } catch (e) {
       print('Google Sign-In Error: $e');
       return null;
+    }
+  }
+  
+  Future<void> _storeUserToApi(User user) async {
+    try {
+      await ApiService.createUser({
+        'full_name': user.displayName ?? '',
+        'email': user.email ?? '',
+      });
+    } catch (e) {
+      print('API Store Error: $e');
     }
   }
 
